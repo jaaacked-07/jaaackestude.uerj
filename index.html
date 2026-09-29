@@ -212,6 +212,19 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+.tn.editing::after,.tn.editing::before{display:none}
+.tn-in{display:inline-block;min-width:4ch;max-width:100%;margin:0 4px;padding:1px 8px 2px;border-radius:7px;background:#FFF4C2;color:#5A4500;font-size:.82em;line-height:1.45;font-style:italic;white-space:pre-wrap;border:1.5px solid #D9B93A;outline:none;vertical-align:baseline;cursor:text;box-shadow:0 0 0 3px rgba(217,185,58,.18)}
+.tn-in:empty::before{content:attr(data-ph);color:#B9A15A}
+:root[data-theme="dark"] .tn-in{background:#3D3515;color:#F5E6A8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tn-in{background:#3D3515;color:#F5E6A8} }
+.tb-float{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:45;filter:drop-shadow(0 6px 16px rgba(0,0,0,.14));animation:tbIn .18s ease-out}
+.tb-float .tbx{background:color-mix(in srgb, var(--surface) 96%, transparent);backdrop-filter:blur(8px)}
+.tb-float .tb span{display:none}
+@keyframes tbIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width: 900px){ .tb-float{right:12px;bottom:calc(72px + env(safe-area-inset-bottom))} }
+@media print{ .tb-float{display:none!important} }
+
+
 details.nb-group{margin-top:0;border-bottom:1px solid var(--line)}
 details.nb-group:first-of-type{border-top:1px solid var(--line)}
 details.nb-group > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 4px;font-size:16px}
@@ -1929,7 +1942,7 @@ function syncTools(){
 }
 function setTool(t, quiet){
   TOOL = t; HL_MODE = t === 'hl'; lsSet('uerj_hlmode', HL_MODE ? '1' : '0');
-  syncTools(); hideBar(); closeTn(true);
+  syncTools(); hideBar(); closeTn(true); if(typeof checkFloat === 'function') checkFloat();
   if(quiet) return;
   if(t === 'hl') toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
   if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
@@ -2002,46 +2015,50 @@ let selT;
 document.addEventListener('selectionchange', () => { clearTimeout(selT); selT = setTimeout(checkSelection, HL_MODE ? (COARSE ? 900 : 60000) : 250); });
 document.addEventListener('mouseup', () => { if(HL_MODE){ clearTimeout(selT); setTimeout(checkSelection, 10); } });
 
-/* texto escrito num ponto da explicação */
-const tnEd = document.createElement('div');
-tnEd.className = 'tn-ed'; tnEd.hidden = true;
-tnEd.innerHTML = '<textarea rows="3" placeholder="Escreva sua observação… (Enter salva, Shift+Enter pula linha)"></textarea><div class="tn-act"><button type="button" class="tn-del">Apagar</button><button type="button" class="tn-ok">Salvar</button></div>';
-document.body.appendChild(tnEd);
-const tnTa = tnEd.querySelector('textarea');
-let tnCur = null; /* {sc, k, id, o, isNew} */
+/* texto escrito no ponto exato do toque: a caixinha nasce ali e você digita dentro dela */
+let tnCur = null; /* {sc, k, id, el} */
 function tnList(sc, k){ S.tnotes = S.tnotes || {}; const a = S.tnotes[sc] = S.tnotes[sc] || {}; return a[k] = a[k] || []; }
-function tnCleanup(sc, k){ const a = S.tnotes[sc]; if(!a) return; if(a[k] && !a[k].length) delete a[k]; if(!Object.keys(a).length) delete S.tnotes[sc]; }
-function openTn(cur, x, y){
-  tnCur = cur;
-  const n = tnList(cur.sc, cur.k).find(z => z.id === cur.id);
-  tnTa.value = n ? n.t : '';
-  tnEd.querySelector('.tn-del').hidden = !n;
-  tnEd.hidden = false;
-  const w = Math.min(320, innerWidth - 16);
-  tnEd.style.width = w + 'px';
-  tnEd.style.left = Math.round(Math.min(Math.max(8, x - w / 2), innerWidth - w - 8)) + 'px';
-  const h = tnEd.offsetHeight; let top = y + 14; if(top + h > innerHeight - 8) top = Math.max(8, y - h - 14);
-  tnEd.style.top = Math.round(top) + 'px';
-  setTimeout(() => tnTa.focus(), 0);
+function tnCleanup(sc, k){ const a = (S.tnotes || {})[sc]; if(!a) return; if(a[k] && !a[k].length) delete a[k]; if(!Object.keys(a).length) delete S.tnotes[sc]; }
+function editTn(sc, k, id){
+  const chip = document.querySelector(`#view .tn[data-tn="${id}"]`); if(!chip) return;
+  const n = tnList(sc, k).find(z => z.id === id);
+  chip.classList.add('editing');
+  chip.innerHTML = '<span class="tn-in" contenteditable="true" spellcheck="true" data-ph="escreva…"></span>';
+  const inp = chip.firstChild; inp.textContent = n ? n.t : '';
+  tnCur = {sc, k, id, el: inp};
+  inp.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if(e.key === 'Enter' && e.shiftKey){ e.preventDefault(); document.execCommand('insertLineBreak'); return; }
+    if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); closeTn(true); }
+    if(e.key === 'Escape'){ e.preventDefault(); closeTn(false); }
+  });
+  inp.addEventListener('paste', e => { e.preventDefault(); const t = e.clipboardData && e.clipboardData.getData('text/plain'); if(t) document.execCommand('insertText', false, t); });
+  inp.focus();
+  const r = document.createRange(); r.selectNodeContents(inp); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
 }
 function closeTn(save_){
-  if(!tnCur){ tnEd.hidden = true; return; }
-  const c = tnCur; tnCur = null; tnEd.hidden = true;
-  if(!save_) return;
-  const list = tnList(c.sc, c.k), t = tnTa.value.trim(), i = list.findIndex(z => z.id === c.id);
-  if(!t){ if(i >= 0) list.splice(i, 1); }
-  else if(i >= 0) list[i].t = t;
-  else list.push({id: c.id, o: c.o, t});
+  if(!tnCur) return;
+  const c = tnCur; tnCur = null;
+  const list = tnList(c.sc, c.k), i = list.findIndex(z => z.id === c.id);
+  const t = c.el.innerText.replace(/\n{3,}/g, '\n\n').trim();
+  if(i >= 0){ if(save_ && t) list[i].t = t; else if(!list[i].t || (save_ && !t)) list.splice(i, 1); }
   tnCleanup(c.sc, c.k); save(); paintMarks();
 }
-tnEd.querySelector('.tn-ok').onclick = () => closeTn(true);
-tnEd.querySelector('.tn-del').onclick = () => { tnTa.value = ''; closeTn(true); };
-tnTa.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); closeTn(true); } if(e.key === 'Escape'){ e.preventDefault(); closeTn(false); } });
-document.addEventListener('pointerdown', e => { if(tnCur && !tnEd.contains(e.target)) closeTn(true); }, true);
+document.addEventListener('pointerdown', e => { if(tnCur && !(e.target.closest && e.target.closest('.tn.editing'))) closeTn(true); }, true);
 function caretAt(x, y){
   if(document.caretRangeFromPoint){ const r = document.caretRangeFromPoint(x, y); return r && {node: r.startContainer, off: r.startOffset}; }
   if(document.caretPositionFromPoint){ const p = document.caretPositionFromPoint(x, y); return p && {node: p.offsetNode, off: p.offset}; }
   return null;
+}
+/* ponto do toque → posição no texto (encosta na borda da palavra mais próxima, sem cortar palavra) */
+function tnOffset(host, ca){
+  const txt = host.textContent, W = /[\wÀ-ÿ%)]/;
+  let o = offsetIn(host, ca.node, ca.off);
+  if(o > 0 && o < txt.length && W.test(txt[o - 1]) && W.test(txt[o])){
+    let a = o, b = o; while(a > 0 && W.test(txt[a - 1])) a--; while(b < txt.length && W.test(txt[b])) b++;
+    o = (o - a) < (b - o) ? a : b;
+  }
+  return o;
 }
 
 /* cliques: anotação de texto > ferramenta ativa > marcação */
@@ -2049,18 +2066,18 @@ document.addEventListener('click', e => {
   if(!e.target.closest) return;
   const chip = e.target.closest('#view .tn');
   if(chip && TOOL !== 'pen'){
+    if(chip.classList.contains('editing')) return;
     e.stopPropagation(); e.preventDefault();
-    const host = chip.closest('[data-mk]'), sc = markScope(host), k = host.dataset.mk;
-    const r = chip.getBoundingClientRect(); openTn({sc, k, id: chip.dataset.tn}, r.left + r.width / 2, r.bottom); return;
+    const host = chip.closest('[data-mk]'); editTn(markScope(host), host.dataset.mk, chip.dataset.tn); return;
   }
   if(TOOL === 'txt' && e.target.closest('#view') && !e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap,a')){
     const ca = caretAt(e.clientX, e.clientY); if(!ca || !ca.node) return;
     const host = (ca.node.nodeType === 1 ? ca.node : ca.node.parentElement).closest('[data-mk]');
     if(!host || !host.closest('#view') || !markScope(host)) return;
     e.stopPropagation(); e.preventDefault();
-    const txt = host.textContent; let o = offsetIn(host, ca.node, ca.off);
-    while(o < txt.length && /[\wÀ-ÿ%)]/.test(txt[o])) o++;
-    openTn({sc: markScope(host), k: host.dataset.mk, id: newImgId().slice(0, 8), o}, e.clientX, e.clientY);
+    const sc = markScope(host), k = host.dataset.mk, id = newImgId().slice(0, 8);
+    tnList(sc, k).push({id, o: tnOffset(host, ca), t: ''});
+    paintMarks(); editTn(sc, k, id);
     return;
   }
   if(TOOL === 'pen' && e.target.closest('#view [data-mk], #view .ink-ov')){ e.stopPropagation(); e.preventDefault(); return; }
@@ -2121,6 +2138,21 @@ document.addEventListener('pointerup', e => {
   (a[P.k] = a[P.k] || []).push({c: PEN_COLOR, w: Math.round(P.R.width), p: P.p});
   save(); paintInk();
 });
+
+/* barra flutuante: quando as ferramentas do topo saem da tela, uma versão compacta fica no canto */
+const tbFloat = document.createElement('div'); tbFloat.className = 'tb-float'; tbFloat.hidden = true; document.body.appendChild(tbFloat);
+function checkFloat(){
+  const has = !!document.querySelector('#view [data-mk]');
+  const bars = [...document.querySelectorAll('#view .tbx')];
+  const vis = bars.some(b => { const r = b.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; });
+  const show = has && bars.length > 0 && !vis;
+  if(show && !tbFloat.firstChild) tbFloat.innerHTML = hlBtn();
+  tbFloat.hidden = !show;
+  if(show) syncTools();
+}
+let flT = null, flT2 = null;
+window.addEventListener('scroll', () => { if(flT) return; flT = requestAnimationFrame(() => { flT = null; checkFloat(); }); }, {passive: true});
+new MutationObserver(() => { clearTimeout(flT2); flT2 = setTimeout(checkFloat, 60); }).observe(document.getElementById('view'), {childList: true});
 
 /* ---------- PWA (instalar como app) ---------- */
 const PWA = {prompt: null};
