@@ -210,6 +210,19 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+/* v6: tipo da anotação na própria caixa e explicação em tópicos */
+.nt-seg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
+.note-tools .nt-seg button{all:unset;cursor:pointer;font-size:12px;line-height:1;padding:6px 10px;border-radius:999px;color:var(--ink-3);min-width:0;height:auto;white-space:nowrap}
+.note-tools .nt-seg button:hover{color:var(--ink);background:transparent}
+.note-tools .nt-seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.nt-where{padding:0 14px 10px}
+.nt-where:empty{display:none}
+@media (max-width: 600px){ .nt-seg{margin-left:0;width:100%;justify-content:space-between} .note-tools .nt-seg button{flex:1;text-align:center;padding:7px 4px} }
+.why-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px}
+.why-list li{line-height:1.65;padding-left:2px}
+.why-list li::marker{color:var(--ink-3)}
+
+
 /* v5: riscar alternativas, próxima no fim, sincronização no Início, cartões (cloze, frente e verso, oclusão) */
 .alt{grid-template-columns:30px 1fr auto}
 .alt .cm{grid-column:2 / 4}
@@ -748,6 +761,23 @@ function questionHTML(q, o){
     ${q.s2 ? `<div class="stem" style="margin-top:0"><span data-mk="s2">${esc(q.s2)}</span></div>` : ''}
     <div class="alts">${alts}</div>`;
 }
+/* "Por que a resposta é": cada frase vira um tópico, sem alterar o texto */
+function sentences(t){
+  const out = []; let last = 0, m;
+  const re = /([.!?])(\s+)(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9("“])/g;
+  while((m = re.exec(t))){
+    const w = (t.slice(0, m.index).match(/(\S+)$/) || ['', ''])[1];
+    if(/^\(?(art|arts|p|ex|dr|dra|sr|sra|vs|n|nº|fig|cap|aprox|al)$/i.test(w) || /^\(?[A-Z]$/.test(w)) continue;
+    const end = m.index + 1 + m[2].length; out.push(t.slice(last, end)); last = end;
+  }
+  out.push(t.slice(last));
+  return out.filter(x => x.trim());
+}
+function whyHTML(q){
+  const ps = sentences(q.e || '');
+  if(ps.length < 2) return `<p><span data-mk="e" data-ms="${q.id}">${esc(q.e)}</span></p>`;
+  return `<ul class="why-list" data-mk="e" data-ms="${q.id}">${ps.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+}
 function feedbackHTML(q, ch){
   const t = tema(q); const dk = DK[q.a+'::'+q.m+'::'+q.t] || [];
   const ok = ch === q.g;
@@ -756,7 +786,7 @@ function feedbackHTML(q, ch){
   return `<div class="fb">
     ${verdict}
     <p class="muted" style="margin-top:6px">Gabarito oficial pós-recurso: <strong>${q.g==='X'?'anulada':q.g}</strong> · Sua resposta: <strong>${ch}</strong></p>
-    <div class="fb-h"><h4>Por que a resposta é ${q.g==='X' ? 'discutível (questão anulada)' : q.g}</h4>${hlBtn()}</div><p><span data-mk="e" data-ms="${q.id}">${esc(q.e)}</span></p>
+    <div class="fb-h"><h4>Por que a resposta é ${q.g==='X' ? 'discutível (questão anulada)' : q.g}</h4>${hlBtn()}</div>${whyHTML(q)}
     <h4>Ponto-chave</h4><p class="key"><span data-mk="k" data-ms="${q.id}">${esc(q.k)}</span></p>
     ${reviewHTML(q)}
     ${!ok && q.g!=='X' ? `<h4>Por que errei?</h4><div class="why">${WHY.map(w => `<button class="chip" data-why="${esc(w)}" aria-pressed="${note.why===w}">${w}</button>`).join('')}</div>` : ''}
@@ -1173,7 +1203,7 @@ function sanitizeNote(html){
 }
 /* S.notes[id] = anotação principal (texto); S.notes[id].more[] = extras: {ty:'txt'|'fv'|'io', ...} */
 const PART_T = {txt: 'Anotação', fv: 'Frente e verso', io: 'Oclusão de imagem'};
-const plain = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent; };
+const plain = h => { const d = document.createElement('div'); d.innerHTML = (h || '').replace(/<br\s*\/?>|<\/div>/gi, ' '); return d.textContent.replace(/ +/g, ' '); };
 function partText(p){
   if(p.ty === 'fv') return [plain(p.f).trim(), plain(p.b).trim()].filter(Boolean).join(' → ');
   if(p.ty === 'io') return p.img ? 'Oclusão de imagem' + (p.boxes && p.boxes.length ? ' (' + p.boxes.length + ')' : '') : '';
@@ -1228,20 +1258,19 @@ function toolsHTML(i, p, ty){
       <button type="button" data-cmd="ink" title="Letra preta" class="nt-ink">A</button>
       <button type="button" data-cmd="cloze" title="Cloze: selecione um trecho e clique. Na revisão ele fica escondido até você tocar." class="nt-cz">[…]</button>` : '';
   const img = ty === 'txt' ? `<button type="button" data-cmd="img" title="Inserir imagem (ou copie e cole com Ctrl+V)">${IMG_ICON}</button>` : '';
-  return `<div class="note-tools" role="toolbar" aria-label="Formatação da anotação">${fmt}${img}
-      ${ty !== 'txt' ? `<span class="nt-kind">${PART_T[ty]}</span>` : ''}
-      <span class="xs faint nt-where">${esc(noteWhere(p))}</span>
-      ${i > 0 ? '<button type="button" data-cmd="del" title="Apagar" class="nt-del">×</button>' : ''}
+  const seg = `<div class="nt-seg" role="group" aria-label="Tipo de anotação">${[['txt', 'Texto'], ['fv', 'Frente e verso'], ['io', 'Oclusão']].map(([k, l]) => `<button type="button" data-ty="${k}" aria-pressed="${ty === k}">${l}</button>`).join('')}</div>`;
+  return `<div class="note-tools" role="toolbar" aria-label="Formatação da anotação">${fmt}${img}${seg}
+      ${i > 0 ? '<button type="button" data-cmd="del" title="Apagar esta anotação" class="nt-del">×</button>' : ''}
     </div>`;
 }
 function noteBox(i, p, ty){
-  ty = (p && p.ty) || ty || 'txt';
+  ty = ty || (p && p.ty) || 'txt';
   let body;
   if(ty === 'fv') body = `<div class="fv-ed"><div class="fv-lab">Frente</div><div class="note-ed fv-f" contenteditable="true" role="textbox" data-ph="Pergunta (ex.: Critérios de Tóquio para colecistite?)">${(p && p.f) || ''}</div>
       <div class="fv-lab">Verso</div><div class="note-ed fv-b" contenteditable="true" role="textbox" data-ph="Resposta">${(p && p.b) || ''}</div></div>`;
   else if(ty === 'io') body = `<div class="io-ed">${p && p.img ? ioStageHTML(p) : ioDropHTML()}</div>`;
   else body = `<div class="note-ed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${i ? 'Mais uma anotação…' : 'Escreva com suas palavras o que precisa lembrar. Shift+Enter pula linha; cole imagens com Ctrl+V.'}">${noteHTMLOf(p)}</div>`;
-  return `<div class="note-wrap" data-ni="${i}" data-ty="${ty}">${toolsHTML(i, p, ty)}${body}</div>`;
+  return `<div class="note-wrap" data-ni="${i}" data-ty="${ty}">${toolsHTML(i, p, ty)}${body}<div class="xs faint nt-where">${esc(noteWhere(p))}</div></div>`;
 }
 function ioDropHTML(){ return `<div class="io-drop" tabindex="0"><div>${IMG_ICON}</div><div>Cole uma imagem (Ctrl+V) ou <button type="button" class="linkbtn io-pick">escolha um arquivo</button></div><div class="xs faint">Depois arraste sobre a imagem para cobrir o que quer esconder.</div></div>`; }
 function ioStageHTML(p){ return `<div class="io-stage io-edit"><img class="io-img" data-img="${esc(p.img)}" alt="" draggable="false">${(p.boxes || []).map((b, k) => `<span class="io-box" data-k="${k}" title="Toque para apagar" style="left:${b[0] * 100}%;top:${b[1] * 100}%;width:${b[2] * 100}%;height:${b[3] * 100}%"></span>`).join('')}</div>
@@ -1249,12 +1278,8 @@ function ioStageHTML(p){ return `<div class="io-stage io-edit"><img class="io-im
 function noteEditorHTML(q){
   const n = S.notes[q.id];
   if(n && n.more) n.more = n.more.filter(partHas);
-  return `<div id="notesBox">${noteBox(0, n, 'txt')}${((n && n.more) || []).map((p, j) => noteBox(j + 1, p)).join('')}</div>
-    <div class="note-adds"><span class="xs faint">Adicionar</span>
-      <button type="button" class="note-add" data-add="txt" title="Mais uma anotação nesta questão"><span aria-hidden="true">+</span> Anotação</button>
-      <button type="button" class="note-add" data-add="fv" title="Cartão com pergunta e resposta"><span aria-hidden="true">+</span> Frente e verso</button>
-      <button type="button" class="note-add" data-add="io" title="Esconda partes de uma imagem para testar a memória"><span aria-hidden="true">+</span> Oclusão de imagem</button>
-    </div>
+  return `<div id="notesBox">${noteBox(0, n)}${((n && n.more) || []).map((p, j) => noteBox(j + 1, p)).join('')}</div>
+    <button type="button" class="note-add" data-add="txt" title="Fazer mais uma anotação nesta questão"><span aria-hidden="true">+</span> Nova anotação</button>
     <input type="file" accept="image/*" id="noteFile" hidden>`;
 }
 /* imagens: comprimidas no aparelho, guardadas à parte (não pesam no progresso) e sincronizadas uma a uma */
@@ -1316,17 +1341,39 @@ function bindNoteBox(q, wrap){
   const idx = +wrap.dataset.ni, ty = wrap.dataset.ty;
   const cur = () => { const n = S.notes[q.id] || {}; return idx ? (n.more || [])[idx - 1] : n; };
   const where = () => { const p = cur(); wrap.querySelector('.nt-where').textContent = partHas(p) ? 'Salva no Caderno de Erros · ' + srcLabel(p.src) : ''; renderNav(); };
-  let t;
-  const commit = () => { clearTimeout(t); t = setTimeout(() => {
+  let t, dirty = false;
+  const doCommit = () => {
+    clearTimeout(t); if(!dirty) return; dirty = false;
     if(ty === 'fv') setPart(q.id, idx, {ty: 'fv', f: sanitizeNote(wrap.querySelector('.fv-f').innerHTML), b: sanitizeNote(wrap.querySelector('.fv-b').innerHTML)});
-    else if(ty === 'txt') setPart(q.id, idx, Object.assign(idx ? {ty: 'txt'} : {}, {html: sanitizeNote(wrap.querySelector('.note-ed').innerHTML)}));
+    else if(ty === 'txt') setPart(q.id, idx, {ty: 'txt', html: sanitizeNote(wrap.querySelector('.note-ed').innerHTML)});
     where();
-  }, 400); };
+  };
+  const commit = () => { dirty = true; clearTimeout(t); t = setTimeout(doCommit, 400); };
+  /* trocar o tipo: a própria caixa se transforma (o conteúdo de cada tipo fica guardado) */
+  wrap.querySelectorAll('.nt-seg [data-ty]').forEach(b => {
+    b.addEventListener('mousedown', e => e.preventDefault());
+    b.onclick = () => {
+      const nt = b.dataset.ty; if(nt === ty) return;
+      doCommit();
+      const p = cur();
+      if(p && (partHas(p) || p.ty)) setPart(q.id, idx, {ty: nt});
+      const tmp = document.createElement('div'); tmp.innerHTML = noteBox(idx, cur(), nt);
+      const nw = tmp.firstElementChild; wrap.replaceWith(nw); bindNoteBox(q, nw); renderNav();
+      const f = nw.querySelector('.note-ed, .io-drop'); if(f) f.focus();
+    };
+  });
   let lastEd = wrap.querySelector('.note-ed');
   wrap.querySelectorAll('.note-ed').forEach(ed => {
     ed.addEventListener('focus', () => lastEd = ed);
     ed.addEventListener('input', commit);
-    ed.addEventListener('keydown', e => { if(e.key === 'Enter' && e.shiftKey){ e.preventDefault(); document.execCommand('insertLineBreak'); commit(); } });
+    /* Shift+Enter pula linha; Enter salva e vai para a próxima questão */
+    ed.addEventListener('keydown', e => {
+      if(e.key !== 'Enter' || e.isComposing || e.ctrlKey || e.altKey || e.metaKey) return;
+      e.preventDefault();
+      if(e.shiftKey){ document.execCommand('insertLineBreak'); commit(); return; }
+      doCommit();
+      const nb = document.querySelector('#nextBtn'); if(nb) nb.click();
+    });
     ed.addEventListener('paste', e => {
       const cd = e.clipboardData; if(!cd) return;
       const files = [...cd.items || []].filter(it => it.kind === 'file' && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
@@ -1341,7 +1388,7 @@ function bindNoteBox(q, wrap){
     b.onclick = () => {
       const c = b.dataset.cmd;
       if(c === 'img'){ NOTE_IMG_TARGET = lastEd; $('#noteFile').click(); return; }
-      if(c === 'del'){ if(partHas(cur()) && !confirm('Apagar esta anotação?')) return; clearTimeout(t); setPart(q.id, idx, {html: '', f: '', b: '', img: '', boxes: []}); wrap.remove(); renderNav(); return; }
+      if(c === 'del'){ if(partHas(cur()) && !confirm('Apagar esta anotação?')) return; clearTimeout(t); dirty = false; setPart(q.id, idx, {html: '', f: '', b: '', img: '', boxes: []}); wrap.remove(); renderNav(); return; }
       if(!lastEd) return;
       lastEd.focus();
       if(c === 'cloze'){ toggleCloze(lastEd); commit(); return; }
@@ -1424,7 +1471,7 @@ function pCaderno(){
   const card = x => {
     const q = QI[x.id], n = S.notes[x.id], st = status(x.id);
     return `<article class="nb-card">
-      <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.i > 0 ? `<span class="tag">${PART_T[x.p.ty || 'txt']}</span>` : ''}</div>
+      <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.p.ty === 'fv' || x.p.ty === 'io' ? `<span class="tag">${PART_T[x.p.ty]}</span>` : x.i > 0 ? '<span class="tag">+ anotação</span>' : ''}</div>
       ${partView(x.p, false)}
       <div class="nb-act"><span class="xs faint">${esc(srcLabel(x.p.src))}</span><button class="linkbtn" data-openq="${x.id}">Abrir questão →</button></div>
     </article>`;
