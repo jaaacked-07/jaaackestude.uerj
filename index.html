@@ -212,6 +212,18 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+details.nb-group{margin-top:0;border-bottom:1px solid var(--line)}
+details.nb-group:first-of-type{border-top:1px solid var(--line)}
+details.nb-group > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 4px;font-size:16px}
+details.nb-group > summary::-webkit-details-marker{display:none}
+details.nb-group > summary::before{content:"";width:7px;height:7px;border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);transform:rotate(-45deg);transition:transform .15s;flex:none;margin-right:2px}
+details.nb-group[open] > summary::before{transform:rotate(45deg)}
+details.nb-group > summary:hover .nb-gt{color:var(--accent)}
+.nb-gt{flex:1;font-weight:500}
+.nb-gbody{padding:2px 0 16px}
+@media print{ details.nb-group > .nb-gbody{display:block} }
+
+
 .dq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
 .dq{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--surface);cursor:pointer;transition:border-color .15s, box-shadow .15s;min-width:0;border-top:3px solid var(--line-2)}
 .dq:hover{border-color:var(--line-2)}
@@ -1548,6 +1560,7 @@ function bindNoteEditor(q){
 
 /* ---------- Caderno de Erros ---------- */
 function noteIds(){ return Object.keys(S.notes).filter(id => QI[id] && hasNote(S.notes[id])); }
+const NB_OPEN = new Set(); /* grupos que você abriu (só durante o uso) */
 function pCaderno(){
   const by = route.by || 'origem';
   const txt = (route.txt || '').toLowerCase();
@@ -1582,10 +1595,11 @@ function pCaderno(){
       <div class="row">${[['origem','Por dia ou simulado'],['area','Por grande área'],['tema','Por tema']].map(([k, t]) => `<button class="chip" data-by="${k}" aria-pressed="${by === k}">${t}</button>`).join('')}</div>
       <input type="text" id="nbTxt" placeholder="Buscar nas anotações (ex.: colecistite)" value="${esc(route.txt || '')}" style="min-width:240px">
     </div>
-    ${arr.length ? arr.map(g => `<section class="nb-group"><h3>${esc(g.label)} <span class="faint small num">${g.items.length}</span></h3>${g.items.sort((a, b) => (b.p.u || 0) - (a.p.u || 0)).map(card).join('')}</section>`).join('')
+    ${arr.length ? arr.map(g => `<details class="nb-group" data-g="${esc(g.label)}"${NB_OPEN.has(by + '|' + g.label) ? ' open' : ''}><summary><span class="nb-gt">${esc(g.label)}</span><span class="faint small num">${g.items.length} ${g.items.length === 1 ? 'anotação' : 'anotações'}</span></summary><div class="nb-gbody">${g.items.sort((a, b) => (b.p.u || 0) - (a.p.u || 0)).map(card).join('')}</div></details>`).join('')
       : `<div class="empty">${entries.length ? 'Nenhuma anotação com esse filtro.' : 'Você ainda não fez anotações. Depois de responder uma questão, escreva em "Minha anotação": ela aparece aqui, separada por "Erros do dia", "Simulado", grande área ou tema.'}</div>`}
   </div>`;
   document.querySelectorAll('[data-by]').forEach(b => b.onclick = () => go('caderno', {by: b.dataset.by, txt: route.txt}));
+  document.querySelectorAll('details.nb-group').forEach(d => d.addEventListener('toggle', () => { const k = by + '|' + d.dataset.g; if(d.open) NB_OPEN.add(k); else NB_OPEN.delete(k); }));
   let tt; $('#nbTxt').oninput = e => { clearTimeout(tt); tt = setTimeout(() => { route.txt = e.target.value; pCaderno(); const el = $('#nbTxt'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 300); };
   const allIds = [...new Set(arr.flatMap(g => g.items.map(x => x.id)))];
   document.querySelectorAll('[data-openq]').forEach(b => b.onclick = () => openQ(b.dataset.openq, allIds, 'Caderno de Erros', () => go('caderno', {by, txt: route.txt})));
