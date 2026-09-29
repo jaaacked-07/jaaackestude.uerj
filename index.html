@@ -184,8 +184,10 @@ textarea{width:100%;min-height:70px;margin-top:10px;resize:vertical}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .empty{padding:40px 0;color:var(--ink-3);font-size:14.5px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:48px}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:28px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:28px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;padding-bottom:2px}
+.tabs::-webkit-scrollbar{height:5px}
+.tabs::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:9px}
+.tabs::-webkit-scrollbar-track{background:transparent}
 .tabs button{all:unset;cursor:pointer;padding:10px 14px;color:var(--ink-2);font-size:14px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
 .lvl{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}
@@ -982,23 +984,37 @@ function pHoje(){
 }
 function totalsLine(noToday){ const s = summary(); const d = S.days[today()], ds = d ? dayStats(d) : {ok: 0, bad: 0}; return `<div class="xs faint totals">${noToday ? '' : `Hoje: ${ds.ok} ${ds.ok === 1 ? 'acerto' : 'acertos'} · ${ds.bad} ${ds.bad === 1 ? 'erro' : 'erros'}<span class="dot"></span>`}No total: ${s.ok} acertos / ${s.bad} erros</div>`; }
 /* resultado do dia: cartões compactos que expandem ao tocar */
-function dayCard(q, r, j){
-  const st = r ? (r.ok ? 'ok' : 'bad') : 'no';
-  const lab = {ok: 'Acertou', bad: 'Errou', no: 'Sem resposta'}[st];
+/* cartão compacto de questão (expande ao tocar) — usado no resultado do dia, revisão, banco, matérias e simulados */
+function qCard(q, st, o){
+  o = o || {};
+  const lab = {ok: 'Acertou', bad: 'Errou', no: o.noLab || 'Não respondida'}[st];
   const stem = q.x ? q.x + ' ' + q.s : q.s;
+  const r = o.r;
   return `<div class="dq ${st}" data-dq="${q.id}" role="button" tabindex="0" aria-expanded="false">
-    <div class="dq-top"><span class="dq-n num">${j + 1}</span><span class="dq-st">${st === 'ok' ? '✓' : st === 'bad' ? '✕' : '–'} ${lab}</span></div>
+    <div class="dq-top"><span class="dq-n num">${o.top != null ? o.top : q.y + ' · Q' + q.n}</span><span class="dq-st">${st === 'ok' ? '✓' : st === 'bad' ? '✕' : '–'} ${lab}</span></div>
     <div class="dq-t">${esc(tema(q).tema)}</div>
-    <div class="dq-m xs faint">UERJ ${q.y} · Q${q.n}${q.g === 'X' ? ' · anulada' : ''}</div>
+    <div class="dq-m xs faint">${o.sub != null ? o.sub : o.top != null ? 'UERJ ' + q.y + ' · Q' + q.n : esc(mat(q).nome)}${q.g === 'X' ? ' · anulada' : ''}</div>
     <div class="dq-more">
       <div class="xs faint" style="margin-bottom:6px">${esc(area(q).label)} › ${esc(mat(q).nome)}</div>
+      ${o.extra || ''}
       <p class="dq-stem">${esc(stem.length > 280 ? stem.slice(0, 280).replace(/\s+\S*$/, '') + '…' : stem)}</p>
       ${r ? `<p class="small" style="margin:8px 0 4px">Sua resposta: <b>${r.ch}</b> · Gabarito: <b>${q.g === 'X' ? 'anulada' : q.g}</b></p>` : ''}
-      <p class="small muted" style="margin:0 0 12px">${esc(q.k)}</p>
+      ${st !== 'no' ? `<p class="small muted" style="margin:0 0 12px">${esc(q.k)}</p>` : '<div style="height:10px"></div>'}
       <button class="btn" data-q="${q.id}">Abrir questão completa →</button>
     </div>
   </div>`;
 }
+function lastAns(id){ const a = S.ans[id]; return a && a.length ? a[a.length - 1] : null; }
+function dayCard(q, r, j){ return qCard(q, r ? (r.ok ? 'ok' : 'bad') : 'no', {top: j + 1, r, noLab: 'Sem resposta'}); }
+function qRow(q, st){ return qCard(q, st, {r: st !== 'no' ? lastAns(q.id) : null}); }
+/* expandir/fechar (um aberto por vez) */
+document.addEventListener('click', e => {
+  const c = e.target.closest && e.target.closest('#view [data-dq]'); if(!c || e.target.closest('[data-q]')) return;
+  const on = !c.classList.contains('open');
+  document.querySelectorAll('#view .dq.open').forEach(x => { x.classList.remove('open'); x.setAttribute('aria-expanded', 'false'); });
+  if(on){ c.classList.add('open'); c.setAttribute('aria-expanded', 'true'); }
+});
+document.addEventListener('keydown', e => { const c = e.target.matches && e.target.matches('#view [data-dq]') ? e.target : null; if(c && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); e.stopPropagation(); c.click(); } }, true);
 function pDia(){
   const date = route.date || today();
   const d = S.days[date];
@@ -1023,19 +1039,10 @@ function pDia(){
     ${errs.length ? `<div class="section"><p class="muted">Os ${errs.length} erros de hoje já entraram na sua revisão espaçada e voltam amanhã.</p></div>` : ''}
   </div>`;
   bindQRows(d.ids, 'Resultado do dia', () => go('dia', {date}), {k: 'dia', d: date});
-  document.querySelectorAll('[data-dq]').forEach(c => {
-    const tog = () => { const on = !c.classList.contains('open'); document.querySelectorAll('.dq.open').forEach(x => { x.classList.remove('open'); x.setAttribute('aria-expanded', 'false'); }); if(on){ c.classList.add('open'); c.setAttribute('aria-expanded', 'true'); } };
-    c.addEventListener('click', e => { if(e.target.closest('[data-q]')) return; tog(); });
-    c.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
-  });
 }
 function hbar(label, ok, n, extra){
   const p = pct(ok, n);
   return `<div class="hbar" data-tip="${esc(label)}: ${ok} de ${n} (${p}%)"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</div><div class="trk"><i style="width:${p}%"></i></div><div class="v">${p}%<span class="faint xs"> · ${n}</span></div></div>`;
-}
-function qRow(q, st){
-  const lab = {ok:'Acertou', bad:'Errou', no:'Não respondida'}[st];
-  return `<div class="qrow" data-q="${q.id}"><div class="small faint num">${q.y} · Q${q.n}</div><div><div class="qt">${esc(q.x ? q.x+' '+q.s : q.s)}</div><div class="xs faint" style="margin-top:4px">${esc(mat(q).nome)} · ${esc(tema(q).tema)}${q.g==='X'?' · anulada':''}</div></div><div class="st ${st}">${lab}</div></div>`;
 }
 function bindQRows(list, backLabel, backFn, src){
   document.querySelectorAll('[data-q]').forEach(el => el.onclick = () => openQ(el.dataset.q, list, backLabel, backFn, src));
@@ -1095,7 +1102,7 @@ function pBanco(){
       ${list.length ? `<button class="btn" id="studyAll">Estudar esta lista</button>` : ''}
       <button class="btn ghost" id="fClear">Limpar filtros</button></div>
     </div>
-    <div>${shown.map(q => qRow(q, status(q.id))).join('') || '<div class="empty">Nenhuma questão com esses filtros.</div>'}</div>
+    ${shown.length ? `<div class="dq-grid">${shown.map(q => qRow(q, status(q.id))).join('')}</div>` : '<div class="empty">Nenhuma questão com esses filtros.</div>'}
     ${list.length > shown.length ? `<div style="margin-top:22px"><button class="btn" id="more">Mostrar mais</button></div>` : ''}
   </div>`;
   const on = (id, k, reset) => $(id).onchange = e => { F[k] = e.target.type==='checkbox' ? e.target.checked : e.target.value; (reset||[]).forEach(r => F[r] = ''); route.lim = 60; pBanco(); };
@@ -1208,7 +1215,7 @@ function pSimRes(){
     <div class="section"><h3>Por especialidade</h3>${Object.keys(byA).map(k => hbar(A.areas[k].label, byA[k].ok, byA[k].n)).join('')}</div>
     ${weak.length ? `<div class="section"><h3>Onde você mais perdeu pontos</h3>${weak.map(g => hbar(A.areas[g.q.a].materias[g.q.m].nome, g.ok, g.n)).join('')}</div>` : ''}
     <div class="section"><h3>Gabarito comentado</h3><p class="muted small">Toque em uma questão para ver sua resposta, o gabarito e a explicação.</p>
-      <div>${s.ids.map(id => qRow(QI[id], !s.ch[id] ? 'no' : s.ch[id]===QI[id].g ? 'ok' : 'bad')).join('')}</div></div>
+      <div class="dq-grid">${s.ids.map((id, j) => qCard(QI[id], !s.ch[id] ? 'no' : s.ch[id]===QI[id].g ? 'ok' : 'bad', {top: j + 1, r: s.ch[id] ? {ch: s.ch[id]} : null, noLab: 'Em branco'})).join('')}</div></div>
   </div>`;
   const k = route.k;
   bindQRows(s.ids, 'Resultado do simulado', () => go('simres', {k}), {k: 'sim', n: k});
@@ -1223,7 +1230,7 @@ function pRevisao(){
   const unIds = Q.filter(q => valid(q) && !S.ans[q.id]).map(q => q.id);
   const T = [['hoje','Para revisar hoje', dueIds.length], ['erros','Meus erros', errIds.length], ['notas','Minhas anotações', noteDue().length ? noteDue().length + ' hoje' : noteIds().length], ['fav','Favoritas', favIds.length], ['nao','Não respondidas', unIds.length], ['hist','Histórico', '']];
   let body = '';
-  const listOf = (ids, emptyMsg) => ids.length ? `<div class="spread" style="margin-bottom:10px"><span class="small muted">${ids.length} ${ids.length>1?'questões':'questão'}</span><button class="btn primary" id="revGo">Revisar em sequência</button></div>${ids.slice(0, route.lim||80).map(id => qRow(QI[id], status(id))).join('')}${ids.length > (route.lim||80) ? '<div style="margin-top:18px"><button class="btn" id="revMore">Mostrar mais</button></div>':''}` : `<div class="empty">${emptyMsg}</div>`;
+  const listOf = (ids, emptyMsg) => ids.length ? `<div class="spread" style="margin-bottom:10px"><span class="small muted">${ids.length} ${ids.length>1?'questões':'questão'}</span><button class="btn primary" id="revGo">Revisar em sequência</button></div><div class="dq-grid">${ids.slice(0, route.lim||80).map(id => qRow(QI[id], status(id))).join('')}</div>${ids.length > (route.lim||80) ? '<div style="margin-top:18px"><button class="btn" id="revMore">Mostrar mais</button></div>':''}` : `<div class="empty">${emptyMsg}</div>`;
   let ids = [];
   if(tab==='hoje'){ ids = dueIds; body = `<p class="muted" style="margin-top:0">Erros e chutes voltam em 1, 3, 7, 15 e 30 dias. Acertou com segurança, a questão sobe um degrau. Errou de novo, recomeça do primeiro.</p>` + listOf(ids, 'Nada para revisar hoje. Volte amanhã ou faça as 30 do dia.'); }
   if(tab==='erros'){
@@ -1616,8 +1623,8 @@ function notesTabHTML(){
   if(!all.length) return `<div class="empty">Suas anotações aparecem aqui para revisar em 1, 3, 7, 15 e 30 dias, mesmo nas questões que você acertou.</div>`;
   return `<div class="spread" style="margin-bottom:12px"><span class="small muted">${due.length ? `${due.length} para revisar hoje` : 'Nenhuma anotação vence hoje'} · ${all.length} no total</span>
     ${due.length ? '<button class="btn primary" id="noteGo">Revisar anotações de hoje</button>' : ''}</div>
-    ${all.map(id => { const q = QI[id], n = S.notes[id], sr = (S.nsrs || {})[id]; const when = !sr ? '—' : sr.done ? 'concluída' : sr.due <= today() ? 'hoje' : fmtD(sr.due); const ps = noteParts(id);
-      return `<div class="qrow" data-q="${id}"><div class="small faint num">${q.y} · Q${q.n}</div><div><div class="qt">${esc(noteText(n))}</div><div class="xs faint" style="margin-top:4px">${esc(tema(q).tema)} · ${esc(srcLabel((ps[0] || {p: n}).p.src))}${ps.length > 1 ? ' · ' + ps.length + ' anotações' : ''}</div></div><div class="st no">revisar: ${when}</div></div>`; }).join('')}`;
+    <div class="dq-grid">${all.map(id => { const q = QI[id], n = S.notes[id], sr = (S.nsrs || {})[id]; const when = !sr ? '—' : sr.done ? 'concluída' : sr.due <= today() ? 'hoje' : fmtD(sr.due); const ps = noteParts(id);
+      return qCard(q, status(id), {r: lastAns(id), sub: 'revisar: ' + when + (ps.length > 1 ? ' · ' + ps.length + ' anotações' : ''), extra: `<div class="nb-note small" style="margin:0 0 10px">${esc(noteText(n))}</div>`}); }).join('')}</div>`;
 }
 
 /* ---------- Matérias (revisões por tema) ---------- */
@@ -1660,7 +1667,7 @@ function pMateria(tid){
     <h1 style="margin:8px 0 18px">${esc(t.t)}</h1>
     <section class="rv" style="margin-top:0;padding-top:0;border-top:0">${rvTopic(t, tid)}</section>
     <div class="section"><div class="spread"><h3>Questões da UERJ sobre este tema</h3>${info.qs.length ? '<button class="btn" id="stTopic">Estudar estas questões</button>' : ''}</div>
-      <div>${info.qs.map(id => qRow(QI[id], status(id))).join('')}</div></div>
+      <div class="dq-grid">${info.qs.map(id => qRow(QI[id], status(id))).join('')}</div></div>
   </div>`;
   const backFn = () => go('materias', Object.assign({}, back, {topic: tid}));
   $('#backBtn').onclick = () => go('materias', back);
