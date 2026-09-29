@@ -210,6 +210,12 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+.hero-n{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.hero-ok{font-size:15px;color:var(--ok);font-weight:600}
+.hero-ok span{color:var(--ink-3);font-weight:400}
+.totals{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-10px 0 18px}
+
+
 /* v7: cores do marca-texto, texto na explicação e caneta */
 .tbx{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--surface);white-space:nowrap}
 .tbx .tb{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:999px;font-size:13px;color:var(--ink-2)}
@@ -738,9 +744,9 @@ function pInicio(){
     <div class="hero">
       <div>
         <div class="eyebrow">30 questões de hoje</div>
-        <div class="big num" style="margin:10px 0 18px">${ds.n}<span>/${d.ids.length}</span></div>
+        <div class="hero-n"><div class="big num" style="margin:10px 0 18px">${ds.n}<span>/${d.ids.length}</span></div>${ds.n ? `<div class="hero-ok num" title="Acertos nas questões de hoje">${ds.ok}<span>/${d.ids.length} acertos</span></div>` : ''}</div>
         <div class="bar"><i style="width:${pct(ds.n, d.ids.length)}%"></i></div>
-        <p class="muted small" style="margin:12px 0 0">${doneAll ? `Concluídas, com ${ds.acc}% de acerto.` : ds.n ? `${ds.ok} acertos até aqui.` : 'Selecionadas do banco UERJ, priorizando questões que você ainda não fez.'}</p>
+        <p class="muted small" style="margin:12px 0 0">${doneAll ? `Concluídas, com ${ds.acc}% de acerto.` : ds.n ? `${ds.acc}% de acerto até aqui.` : 'Selecionadas do banco UERJ, priorizando questões que você ainda não fez.'}</p>
       </div>
       <div class="row" style="justify-content:flex-start">
         ${doneAll ? `<button class="btn primary" data-go="dia">Ver resultado do dia</button><button class="btn" data-go="revisao">Ir para a revisão</button>` : `<button class="btn primary" data-go="hoje">${ds.n ? 'Continuar' : 'Começar'}</button>`}
@@ -748,8 +754,7 @@ function pInicio(){
     </div>
     <div class="section" style="margin-top:44px"><div class="stats">
       <div class="stat"><b class="num">${Q.length}</b><span>questões no banco · ${Q.length - validN} anuladas</span></div>
-      <div class="stat"><b class="num">${s.answered}</b><span>respondidas</span></div>
-      <div class="stat"><b class="num">${s.ok}<span class="faint" style="font-size:20px"> / ${s.bad}</span></b><span>acertos / erros</span></div>
+      <div class="stat"><b class="num">${s.ok}<span class="faint" style="font-size:20px"> / ${s.answered}</span></b><span>acertos / respondidas</span></div>
       <div class="stat"><b class="num">${s.answered ? s.acc+'%' : '—'}</b><span>de acerto</span></div>
       <div class="stat"><b class="num">${st}</b><span>${st===1?'dia seguido':'dias seguidos'}</span></div>
     </div></div>
@@ -883,6 +888,7 @@ function studyRunner(q, ctx){
         ${ctx.progress ? `<div class="bar"><i style="width:${pct(ctx.progress.i, ctx.progress.n)}%"></i></div><div class="num small muted">${ctx.progress.i}/${ctx.progress.n}</div>` : '<div style="flex:1"></div>'}
         ${hlBtn()}<span class="timer" id="tmr"></span>
       </div>
+      ${ctx.totals ? totalsLine() : ''}
       ${questionHTML(q, {chosen, reveal: rev})}
       <div class="actions">
         ${rev ? `<button class="star" id="favBtn" aria-pressed="${fav}">${fav?'★ Favorita':'☆ Favoritar'}</button>` :
@@ -945,7 +951,7 @@ function pHoje(){
   NOTE_SRC = {k: 'dia', d: today()};
   studyRunner(q, {
     back: 'Início', onBack: () => go('inicio'), mode: 'dia',
-    progress: {i: Object.keys(d.res).length, n: d.ids.length},
+    progress: {i: Object.keys(d.res).length, n: d.ids.length}, totals: true,
     given: d.res[q.id],
     onAnswer: r => { d.res[q.id] = {ch: r.ch, ok: r.ok}; save(); },
     prev: i > 0 ? () => { route.i = i-1; pHoje(); } : null,
@@ -954,6 +960,7 @@ function pHoje(){
   });
   route.i = i;
 }
+function totalsLine(){ const s = summary(); const d = S.days[today()], ds = d ? dayStats(d) : {ok: 0, bad: 0}; return `<div class="xs faint totals">Hoje: ${ds.ok} ${ds.ok === 1 ? 'acerto' : 'acertos'} · ${ds.bad} ${ds.bad === 1 ? 'erro' : 'erros'}<span class="dot"></span>No total: ${s.ok} acertos / ${s.bad} erros</div>`; }
 function pDia(){
   const date = route.date || today();
   const d = S.days[date];
@@ -971,6 +978,7 @@ function pDia(){
       <div class="stat"><b class="num">${ds.bad}</b><span>erros</span></div>
       <div class="stat"><b class="num">${ds.n}/${d.ids.length}</b><span>respondidas</span></div>
     </div>
+    <div style="margin-top:12px">${totalsLine()}</div>
     <div class="section"><h3>Por especialidade</h3>${Object.keys(byArea).sort((a,b)=>a-b).map(k => hbar(A.areas[k].label, byArea[k].ok, byArea[k].n)).join('')}</div>
     <div class="section"><h3>Questões do dia</h3><div>${d.ids.map((id,j) => qRow(QI[id], d.res[id] ? (d.res[id].ok?'ok':'bad') : 'no')).join('')}</div></div>
     ${errs.length ? `<div class="section"><p class="muted">Os ${errs.length} erros de hoje já entraram na sua revisão espaçada e voltam amanhã.</p></div>` : ''}
