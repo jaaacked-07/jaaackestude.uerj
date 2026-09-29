@@ -210,6 +210,47 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+/* v7: cores do marca-texto, texto na explicação e caneta */
+.tbx{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--surface);white-space:nowrap}
+.tbx .tb{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:999px;font-size:13px;color:var(--ink-2)}
+.tbx .tb:hover{color:var(--ink);background:var(--sunk)}
+.tbx .tb[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.tbx .hlbtn[aria-pressed="true"]{background:#FFE58A;color:#3A2E00}
+.tb-cols{display:inline-flex;align-items:center;gap:5px}
+.tb-cols:not(:empty){padding:0 6px 0 6px;border-left:1px solid var(--line);margin-left:3px}
+.tb-dot{all:unset;cursor:pointer;width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);transition:transform .12s}
+.tb-dot:hover{transform:scale(1.12)}
+.tb-dot[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink-2)}
+.hdot.h0{background:#FFE58A}.hdot.h1{background:#BFE8C6}.hdot.h2{background:#C3DDF7}.hdot.h3{background:#F7CADD}.hdot.h4{background:#DCCFF5}.hdot.h5{background:#FFD6B0}
+.pdot.pr{background:#D64545}.pdot.pb{background:#2F6FD6}.pdot.pg{background:#2E9A5B}.pdot.pk{background:var(--ink)}
+.fb-h .tbx{margin-top:18px}
+@media (max-width: 900px){ .tbx .tb span{display:none} .tbx .tb{padding:0 8px} .tb-dot{width:18px;height:18px} }
+mark.hl.h1{background:#BFE8C6} mark.hl.h2{background:#C3DDF7} mark.hl.h3{background:#F7CADD} mark.hl.h4{background:#DCCFF5} mark.hl.h5{background:#FFD6B0}
+:root[data-theme="dark"] mark.hl.h1{background:#2F5A3A} :root[data-theme="dark"] mark.hl.h2{background:#2B4A66} :root[data-theme="dark"] mark.hl.h3{background:#6A3550} :root[data-theme="dark"] mark.hl.h4{background:#4B3F6B} :root[data-theme="dark"] mark.hl.h5{background:#6E4A2A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) mark.hl.h1{background:#2F5A3A} :root:not([data-theme="light"]) mark.hl.h2{background:#2B4A66} :root:not([data-theme="light"]) mark.hl.h3{background:#6A3550} :root:not([data-theme="light"]) mark.hl.h4{background:#4B3F6B} :root:not([data-theme="light"]) mark.hl.h5{background:#6E4A2A} }
+.tn{display:inline;cursor:pointer}
+.tn::after{content:attr(data-t);display:inline-block;vertical-align:baseline;margin:0 4px;padding:1px 8px 2px;border-radius:7px;background:#FFF4C2;color:#5A4500;font-size:.82em;line-height:1.45;font-style:italic;white-space:pre-wrap;max-width:100%;border:1px solid #F0DC8A;text-indent:0;font-weight:400}
+.tn::before{content:"✎";font-size:.75em;color:#B08A10;margin-left:2px;font-style:normal}
+:root[data-theme="dark"] .tn::after{background:#3D3515;color:#F5E6A8;border-color:#5E5220}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tn::after{background:#3D3515;color:#F5E6A8;border-color:#5E5220} }
+.tn:hover::after{border-color:#D9B93A}
+body.txtmode #view [data-mk]{cursor:text}
+body.txtmode #view .tn{cursor:pointer}
+.tn-ed{position:fixed;z-index:75;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.16);padding:10px}
+.tn-ed textarea{width:100%;box-sizing:border-box;border:0;outline:none;resize:vertical;font:inherit;font-size:14.5px;line-height:1.5;background:transparent;color:var(--ink);min-height:64px}
+.tn-act{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+.tn-act button{all:unset;cursor:pointer;font-size:13px;padding:6px 12px;border-radius:8px;color:var(--ink-2)}
+.tn-act .tn-ok{background:var(--ink);color:var(--bg)}
+.tn-act .tn-del{margin-right:auto}
+.tn-act .tn-del:hover{color:var(--bad)}
+.ink-ov{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+.ink-ov path{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.ink-ov path[stroke="currentColor"]{color:var(--ink)}
+body.penmode #view .ink-ov path{pointer-events:stroke;cursor:pointer}
+body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .rv-body, body.penmode #view .fb{cursor:crosshair;user-select:none;-webkit-user-select:none;touch-action:none}
+.rv-mk{display:block;position:relative}
+
+
 /* v6: tipo da anotação na própria caixa e explicação em tópicos */
 .nt-seg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
 .note-tools .nt-seg button{all:unset;cursor:pointer;font-size:12px;line-height:1;padding:6px 10px;border-radius:999px;color:var(--ink-3);min-width:0;height:auto;white-space:nowrap}
@@ -278,7 +319,6 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 
 
 /* ficha clínica, explicação marcável, várias anotações e imagens */
-.rv-mk{display:contents}
 .fb-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .fb-h .hlbtn{margin-top:18px}
 .rv-ficha{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;margin:6px 0 22px;background:var(--surface)}
@@ -372,7 +412,7 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 :root[data-theme="dark"] .hlbtn[aria-pressed="true"]{background:#6B5A1E;border-color:#8A7427;color:#FFF3C4}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .hlbtn[aria-pressed="true"]{background:#6B5A1E;border-color:#8A7427;color:#FFF3C4} }
 body.hlmode .stem, body.hlmode .ctx, body.hlmode .alt .at{cursor:text}
-body.hlmode #view ::selection{background:#FFE58A;color:inherit}
+body.hlmode #view ::selection{background:rgba(255,213,79,.55);color:inherit}
 @media (max-width: 900px){ .hlbtn span{display:none} .hlbtn{padding:7px 9px} .who{margin-top:0} }
 
 @media (max-width: 900px){
@@ -468,7 +508,7 @@ const WHY = ['Não sabia o conteúdo','Confundi conceitos','Li com pressa','Caí
 
 /* ---------- state ---------- */
 let S = blank();
-function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, set:{exam:'', theme:''}, cur:{}, mt:0}; }
+function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, tnotes:{}, ink:{}, set:{exam:'', theme:''}, cur:{}, mt:0}; }
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, v); return true; }catch(e){ return false; } }
 function load(){ try{ const s = JSON.parse(lsGet(SKEY)); if(s && s.ans) return Object.assign(blank(), s); }catch(e){} return blank(); }
@@ -482,7 +522,7 @@ function merge(a, b){
   const o = blank();
   for(const src of [a, b]) for(const id in src.ans){ const arr = o.ans[id] = o.ans[id] || []; for(const x of src.ans[id]) if(!arr.some(y => y.t === x.t)) arr.push(x); }
   for(const id in o.ans) o.ans[id].sort((x, y) => x.t - y.t);
-  for(const k of ['fav','notes','srs','nsrs','marks','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
+  for(const k of ['fav','notes','srs','nsrs','marks','tnotes','ink','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
   const dates = new Set([...Object.keys(a.days), ...Object.keys(b.days)]);
   for(const d of dates){
     const x = a.days[d], y = b.days[d];
@@ -1722,48 +1762,115 @@ document.addEventListener('mousemove', e => { const t = e.target.closest && e.ta
 /* extra routes */
 const _render = render;
 render = function(){ if(route.page === 'simrun'){ renderNav(); pSimRun(); return; } _render(); };
-/* ---------- marca-texto ---------- */
+/* ---------- marca-texto (cores), texto na explicação e caneta ---------- */
 let CURQ = null;
 const hasSel = () => { const s = window.getSelection(); return !!s && String(s).trim().length > 0; };
-function markHTML(text, ranges){
-  if(!ranges || !ranges.length) return esc(text);
-  let out = '', pos = 0;
-  for(const [a, b] of ranges.slice().sort((x, y) => x[0] - y[0])){
-    if(a < pos || b > text.length) continue;
-    out += esc(text.slice(pos, a)) + `<mark class="hl" data-r="${a}-${b}">${esc(text.slice(a, b))}</mark>`;
-    pos = b;
-  }
-  return out + esc(text.slice(pos));
-}
+const HL_COLS = [['Amarelo', 0], ['Verde', 1], ['Azul', 2], ['Rosa', 3], ['Lilás', 4], ['Pêssego', 5]];
+const PEN_COLS = [['Vermelho', 'r'], ['Azul', 'b'], ['Verde', 'g'], ['Preto', 'k']];
 const H0 = new WeakMap();
 function markScope(el){ return el.dataset.ms || CURQ; }
-function paintEl(el, ranges){
+/* marcações: [início, fim, cor?]; anotações de texto: {id, o (posição no texto), t} — nenhuma altera o texto original */
+function paintEl(el, ranges, notes){
   if(!H0.has(el)) H0.set(el, el.innerHTML);
-  if(!(ranges && ranges.length) && !el._hl) return;
+  const has = (ranges && ranges.length) || (notes && notes.length);
+  if(!has && !el._hl) return;
   el.innerHTML = H0.get(el); el._hl = false;
-  if(!(ranges && ranges.length)) return;
-  const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = []; let nd;
-  while((nd = tw.nextNode())) nodes.push(nd);
-  let pos = 0;
-  for(const t of nodes){
-    const txt = t.nodeValue, s0 = pos, e0 = pos + txt.length; pos = e0;
-    const segs = ranges.filter(([a, b]) => a < e0 && b > s0).sort((x, y) => x[0] - y[0]);
-    if(!segs.length) continue;
-    const fr = document.createDocumentFragment(); let cur = s0;
-    for(const [a, b] of segs){
-      const A = Math.max(a, s0, cur), B = Math.min(b, e0); if(B <= A) continue;
-      if(A > cur) fr.append(txt.slice(cur - s0, A - s0));
-      const m = document.createElement('mark'); m.className = 'hl'; m.dataset.r = a + '-' + b; m.textContent = txt.slice(A - s0, B - s0); fr.append(m); cur = B;
+  if(!has) return;
+  const texts = () => { const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), out = []; let nd; while((nd = tw.nextNode())) out.push(nd); return out; };
+  if(ranges && ranges.length){
+    let pos = 0;
+    for(const t of texts()){
+      const txt = t.nodeValue, s0 = pos, e0 = pos + txt.length; pos = e0;
+      const segs = ranges.filter(([a, b]) => a < e0 && b > s0).sort((x, y) => x[0] - y[0]);
+      if(!segs.length) continue;
+      const fr = document.createDocumentFragment(); let cur = s0;
+      for(const [a, b, c] of segs){
+        const A = Math.max(a, s0, cur), B = Math.min(b, e0); if(B <= A) continue;
+        if(A > cur) fr.append(txt.slice(cur - s0, A - s0));
+        const m = document.createElement('mark'); m.className = 'hl' + (c ? ' h' + c : ''); m.dataset.r = a + '-' + b; m.textContent = txt.slice(A - s0, B - s0); fr.append(m); cur = B;
+      }
+      if(cur < e0) fr.append(txt.slice(cur - s0));
+      t.replaceWith(fr);
     }
-    if(cur < e0) fr.append(txt.slice(cur - s0));
-    t.replaceWith(fr);
+  }
+  for(const n of (notes || []).slice().sort((x, y) => y.o - x.o)){
+    let pos = 0, done = false;
+    const chip = document.createElement('span'); chip.className = 'tn'; chip.dataset.tn = n.id; chip.dataset.t = n.t; chip.title = 'Toque para editar';
+    for(const t of texts()){
+      const L = t.nodeValue.length;
+      if(n.o <= pos + L){ const rest = t.splitText(Math.max(0, n.o - pos)); rest.parentNode.insertBefore(chip, rest); done = true; break; }
+      pos += L;
+    }
+    if(!done) el.appendChild(chip);
   }
   el._hl = true;
 }
-function paintMarks(){
-  document.querySelectorAll('#view [data-mk]').forEach(el => { const sc = markScope(el); if(sc) paintEl(el, (S.marks[sc] || {})[el.dataset.mk]); });
+function inkAnchor(el){ return getComputedStyle(el).display === 'inline' ? el.parentElement : el; }
+const PEN_HEX = {r: '#D64545', b: '#2F6FD6', g: '#2E9A5B', k: 'currentColor'};
+function strokeD(p, s){ let d = ''; for(let i = 0; i < p.length; i += 2) d += (i ? ' L' : 'M') + (p[i] * s).toFixed(1) + ' ' + (p[i + 1] * s).toFixed(1); return d; }
+function paintInk(){
+  document.querySelectorAll('#view .ink-ov').forEach(x => x.remove());
+  document.querySelectorAll('#view [data-mk]').forEach(el => {
+    const sc = markScope(el); if(!sc) return;
+    const list = ((S.ink || {})[sc] || {})[el.dataset.mk]; if(!list || !list.length) return;
+    const an = inkAnchor(el); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
+    const W = an.getBoundingClientRect().width || 1;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov'); svg.dataset.sc = sc; svg.dataset.k = el.dataset.mk;
+    svg.innerHTML = list.map((st, i) => `<path data-i="${i}" d="${strokeD(st.p, W / (st.w || W))}" stroke="${PEN_HEX[st.c] || PEN_HEX.r}"/>`).join('');
+    an.appendChild(svg);
+  });
 }
+function paintMarks(){
+  document.querySelectorAll('#view [data-mk]').forEach(el => { const sc = markScope(el); if(!sc) return; const k = el.dataset.mk; paintEl(el, (S.marks[sc] || {})[k], ((S.tnotes || {})[sc] || {})[k]); });
+  paintInk();
+}
+let inkRT; window.addEventListener('resize', () => { clearTimeout(inkRT); inkRT = setTimeout(paintInk, 150); });
 function offsetIn(el, node, off){ const r = document.createRange(); r.setStart(el, 0); r.setEnd(node, off); return r.toString().length; }
+
+/* ferramentas: marca-texto (padrão amarelo), texto e caneta */
+let TOOL = lsGet('uerj_hlmode') === '1' ? 'hl' : '';
+let HL_MODE = TOOL === 'hl';
+let HL_COLOR = +(lsGet('uerj_hlcolor') || 0) || 0;
+let PEN_COLOR = lsGet('uerj_pencolor') || 'r';
+const HL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>';
+const TXT_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4.5h14V6"/><path d="M12 4.5v15"/><path d="M9 19.5h6"/></svg>';
+const PEN_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
+function colsHTML(){
+  if(TOOL === 'hl') return HL_COLS.map(([n, c]) => `<button type="button" class="tb-dot hdot h${c}" data-hc="${c}" aria-pressed="${HL_COLOR === c}" title="${n}" aria-label="Cor ${n}"></button>`).join('');
+  if(TOOL === 'pen') return PEN_COLS.map(([n, c]) => `<button type="button" class="tb-dot pdot p${c}" data-pc="${c}" aria-pressed="${PEN_COLOR === c}" title="${n}" aria-label="Caneta ${n}"></button>`).join('');
+  return '';
+}
+function hlBtn(){
+  return `<div class="tbx" role="toolbar" aria-label="Ferramentas de marcação">
+    <button type="button" class="tb hlbtn" data-tool="hl" aria-pressed="${TOOL === 'hl'}" title="Marca-texto: selecione o trecho e ele é marcado; toque na marcação para apagar">${HL_ICON}<span>Marca-texto</span></button>
+    <button type="button" class="tb" data-tool="txt" aria-pressed="${TOOL === 'txt'}" title="Texto: toque num ponto do texto para escrever uma observação ali">${TXT_ICON}</button>
+    <button type="button" class="tb" data-tool="pen" aria-pressed="${TOOL === 'pen'}" title="Caneta: desenhe para circular; toque num traço para apagar">${PEN_ICON}</button>
+    <span class="tb-cols">${colsHTML()}</span>
+  </div>`;
+}
+function syncTools(){
+  document.body.classList.toggle('hlmode', TOOL === 'hl');
+  document.body.classList.toggle('txtmode', TOOL === 'txt');
+  document.body.classList.toggle('penmode', TOOL === 'pen');
+  document.querySelectorAll('.tbx').forEach(x => { x.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === TOOL))); x.querySelector('.tb-cols').innerHTML = colsHTML(); });
+}
+function setTool(t, quiet){
+  TOOL = t; HL_MODE = t === 'hl'; lsSet('uerj_hlmode', HL_MODE ? '1' : '0');
+  syncTools(); hideBar(); closeTn(true);
+  if(quiet) return;
+  if(t === 'hl') toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
+  if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
+  if(t === 'pen') toast('Caneta: desenhe para circular. Toque num traço para apagar. Desligue para rolar a página no celular.');
+}
+function setHlMode(on){ setTool(on ? 'hl' : ''); }
+document.addEventListener('click', e => {
+  if(!e.target.closest) return;
+  const tb = e.target.closest('.tbx [data-tool]'); if(tb){ e.preventDefault(); setTool(TOOL === tb.dataset.tool ? '' : tb.dataset.tool); return; }
+  const hc = e.target.closest('[data-hc]'); if(hc){ e.preventDefault(); HL_COLOR = +hc.dataset.hc; lsSet('uerj_hlcolor', String(HL_COLOR)); syncTools(); return; }
+  const pc = e.target.closest('[data-pc]'); if(pc){ e.preventDefault(); PEN_COLOR = pc.dataset.pc; lsSet('uerj_pencolor', PEN_COLOR); syncTools(); return; }
+});
+
+/* marca-texto */
 let hlPending = null;
 const hlbar = $('#hlbar');
 function hideBar(){ hlbar.hidden = true; hlPending = null; }
@@ -1775,18 +1882,6 @@ function showBar(rect, mode){
   hlbar.style.top = Math.round(top) + 'px';
   hlbar.style.left = Math.round(Math.min(Math.max(8, rect.left + rect.width / 2 - w / 2), innerWidth - w - 8)) + 'px';
 }
-/* modo marca-texto: com o botão ligado, selecionar já marca e tocar na marcação apaga */
-let HL_MODE = lsGet('uerj_hlmode') === '1';
-const HL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>';
-function hlBtn(){ return `<button class="hlbtn" aria-pressed="${HL_MODE}" title="Marca-texto: ligue, selecione o trecho e ele é marcado">${HL_ICON}<span>Marca-texto</span></button>`; }
-function setHlMode(on){
-  HL_MODE = on; lsSet('uerj_hlmode', on ? '1' : '0');
-  document.body.classList.toggle('hlmode', on);
-  document.querySelectorAll('.hlbtn').forEach(b => b.setAttribute('aria-pressed', String(on)));
-  hideBar();
-  if(on) toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
-}
-document.addEventListener('click', e => { if(e.target.closest && e.target.closest('.hlbtn')){ e.preventDefault(); setHlMode(!HL_MODE); } });
 function selInfo(){
   const s = window.getSelection();
   if(!s || s.isCollapsed || !s.rangeCount) return null;
@@ -1797,12 +1892,20 @@ function selInfo(){
   if(b - a < 1 || !el.textContent.slice(a, b).trim()) return null;
   return {sc: markScope(el), key: el.dataset.mk, a, b, rect: r.getBoundingClientRect()};
 }
-function addMark(sc, key, a, b){
+/* mesma cor encosta/junta; cor diferente substitui o trecho que ficou por cima */
+function addMark(sc, key, a, b, c){
+  c = c == null ? HL_COLOR : c;
   const m = S.marks[sc] = S.marks[sc] || {};
-  const list = (m[key] || []).concat([[a, b]]).sort((x, y) => x[0] - y[0]);
-  const merged = [];
-  for(const r of list){ const l = merged[merged.length - 1]; if(l && r[0] <= l[1]) l[1] = Math.max(l[1], r[1]); else merged.push(r.slice()); }
-  m[key] = merged;
+  const out = [];
+  for(const r of (m[key] || [])){
+    const rc = r[2] || 0;
+    if(rc === c && r[1] >= a && r[0] <= b){ a = Math.min(a, r[0]); b = Math.max(b, r[1]); continue; }
+    if(r[1] <= a || r[0] >= b){ out.push(r); continue; }
+    if(r[0] < a) out.push(rc ? [r[0], a, rc] : [r[0], a]);
+    if(r[1] > b) out.push(rc ? [b, r[1], rc] : [b, r[1]]);
+  }
+  out.push(c ? [a, b, c] : [a, b]);
+  m[key] = out.sort((x, y) => x[0] - y[0]);
   save(); window.getSelection().removeAllRanges(); hideBar(); paintMarks();
 }
 function delMark(sc, key, a, b){
@@ -1813,6 +1916,7 @@ function delMark(sc, key, a, b){
   save(); hideBar(); paintMarks();
 }
 function checkSelection(){
+  if(TOOL === 'txt' || TOOL === 'pen') return;
   const i = selInfo();
   if(!i){ if(hlPending && hlPending.mode === 'add') hideBar(); return; }
   if(HL_MODE){ addMark(i.sc, i.key, i.a, i.b); return; }
@@ -1824,8 +1928,70 @@ let selT;
 /* mouse: decide ao soltar o botão; toque: espera o ajuste das alças da seleção */
 document.addEventListener('selectionchange', () => { clearTimeout(selT); selT = setTimeout(checkSelection, HL_MODE ? (COARSE ? 900 : 60000) : 250); });
 document.addEventListener('mouseup', () => { if(HL_MODE){ clearTimeout(selT); setTimeout(checkSelection, 10); } });
+
+/* texto escrito num ponto da explicação */
+const tnEd = document.createElement('div');
+tnEd.className = 'tn-ed'; tnEd.hidden = true;
+tnEd.innerHTML = '<textarea rows="3" placeholder="Escreva sua observação… (Enter salva, Shift+Enter pula linha)"></textarea><div class="tn-act"><button type="button" class="tn-del">Apagar</button><button type="button" class="tn-ok">Salvar</button></div>';
+document.body.appendChild(tnEd);
+const tnTa = tnEd.querySelector('textarea');
+let tnCur = null; /* {sc, k, id, o, isNew} */
+function tnList(sc, k){ S.tnotes = S.tnotes || {}; const a = S.tnotes[sc] = S.tnotes[sc] || {}; return a[k] = a[k] || []; }
+function tnCleanup(sc, k){ const a = S.tnotes[sc]; if(!a) return; if(a[k] && !a[k].length) delete a[k]; if(!Object.keys(a).length) delete S.tnotes[sc]; }
+function openTn(cur, x, y){
+  tnCur = cur;
+  const n = tnList(cur.sc, cur.k).find(z => z.id === cur.id);
+  tnTa.value = n ? n.t : '';
+  tnEd.querySelector('.tn-del').hidden = !n;
+  tnEd.hidden = false;
+  const w = Math.min(320, innerWidth - 16);
+  tnEd.style.width = w + 'px';
+  tnEd.style.left = Math.round(Math.min(Math.max(8, x - w / 2), innerWidth - w - 8)) + 'px';
+  const h = tnEd.offsetHeight; let top = y + 14; if(top + h > innerHeight - 8) top = Math.max(8, y - h - 14);
+  tnEd.style.top = Math.round(top) + 'px';
+  setTimeout(() => tnTa.focus(), 0);
+}
+function closeTn(save_){
+  if(!tnCur){ tnEd.hidden = true; return; }
+  const c = tnCur; tnCur = null; tnEd.hidden = true;
+  if(!save_) return;
+  const list = tnList(c.sc, c.k), t = tnTa.value.trim(), i = list.findIndex(z => z.id === c.id);
+  if(!t){ if(i >= 0) list.splice(i, 1); }
+  else if(i >= 0) list[i].t = t;
+  else list.push({id: c.id, o: c.o, t});
+  tnCleanup(c.sc, c.k); save(); paintMarks();
+}
+tnEd.querySelector('.tn-ok').onclick = () => closeTn(true);
+tnEd.querySelector('.tn-del').onclick = () => { tnTa.value = ''; closeTn(true); };
+tnTa.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); closeTn(true); } if(e.key === 'Escape'){ e.preventDefault(); closeTn(false); } });
+document.addEventListener('pointerdown', e => { if(tnCur && !tnEd.contains(e.target)) closeTn(true); }, true);
+function caretAt(x, y){
+  if(document.caretRangeFromPoint){ const r = document.caretRangeFromPoint(x, y); return r && {node: r.startContainer, off: r.startOffset}; }
+  if(document.caretPositionFromPoint){ const p = document.caretPositionFromPoint(x, y); return p && {node: p.offsetNode, off: p.offset}; }
+  return null;
+}
+
+/* cliques: anotação de texto > ferramenta ativa > marcação */
 document.addEventListener('click', e => {
-  const mk = e.target.closest && e.target.closest('mark.hl');
+  if(!e.target.closest) return;
+  const chip = e.target.closest('#view .tn');
+  if(chip && TOOL !== 'pen'){
+    e.stopPropagation(); e.preventDefault();
+    const host = chip.closest('[data-mk]'), sc = markScope(host), k = host.dataset.mk;
+    const r = chip.getBoundingClientRect(); openTn({sc, k, id: chip.dataset.tn}, r.left + r.width / 2, r.bottom); return;
+  }
+  if(TOOL === 'txt' && e.target.closest('#view') && !e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap,a')){
+    const ca = caretAt(e.clientX, e.clientY); if(!ca || !ca.node) return;
+    const host = (ca.node.nodeType === 1 ? ca.node : ca.node.parentElement).closest('[data-mk]');
+    if(!host || !host.closest('#view') || !markScope(host)) return;
+    e.stopPropagation(); e.preventDefault();
+    const txt = host.textContent; let o = offsetIn(host, ca.node, ca.off);
+    while(o < txt.length && /[\wÀ-ÿ%)]/.test(txt[o])) o++;
+    openTn({sc: markScope(host), k: host.dataset.mk, id: newImgId().slice(0, 8), o}, e.clientX, e.clientY);
+    return;
+  }
+  if(TOOL === 'pen' && e.target.closest('#view [data-mk], #view .ink-ov')){ e.stopPropagation(); e.preventDefault(); return; }
+  const mk = e.target.closest('mark.hl');
   if(mk && !hasSel()){
     e.stopPropagation(); e.preventDefault();
     const [a, b] = mk.dataset.r.split('-').map(Number);
@@ -1840,6 +2006,48 @@ hlbar.addEventListener('mousedown', e => e.preventDefault());
 $('#hlAdd').onclick = () => { if(hlPending) addMark(hlPending.sc, hlPending.key, hlPending.a, hlPending.b); };
 $('#hlDel').onclick = () => { if(hlPending) delMark(hlPending.sc, hlPending.key, hlPending.a, hlPending.b); };
 window.addEventListener('scroll', () => { if(!hlbar.hidden) hideBar(); }, {passive: true});
+
+/* caneta: traços presos ao bloco de texto onde começaram */
+let pen = null;
+document.addEventListener('pointerdown', e => {
+  if(TOOL !== 'pen' || !e.target.closest || e.button > 0) return;
+  if(!e.target.closest('#view') || e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap')) return;
+  const path = e.target.closest('.ink-ov path');
+  let host = path ? null : e.target.closest('[data-mk]');
+  if(!host && !path){ const inner = e.target.querySelector && e.target.querySelector(':scope > [data-mk]'); if(inner) host = inner; }
+  if(!host && !path) return;
+  e.preventDefault();
+  if(path){ pen = {del: path, x: e.clientX, y: e.clientY}; return; }
+  const sc = markScope(host); if(!sc) return;
+  const an = inkAnchor(host); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
+  const R = an.getBoundingClientRect();
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov ink-live');
+  const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path'); pa.setAttribute('stroke', PEN_HEX[PEN_COLOR]); svg.appendChild(pa); an.appendChild(svg);
+  pen = {sc, k: host.dataset.mk, an, R, svg, pa, p: [Math.round(e.clientX - R.left), Math.round(e.clientY - R.top)]};
+}, true);
+document.addEventListener('pointermove', e => {
+  if(!pen || pen.del) return;
+  e.preventDefault();
+  const x = Math.round(e.clientX - pen.R.left), y = Math.round(e.clientY - pen.R.top), n = pen.p.length;
+  if(Math.abs(x - pen.p[n - 2]) + Math.abs(y - pen.p[n - 1]) < 2) return;
+  pen.p.push(x, y); pen.pa.setAttribute('d', strokeD(pen.p, 1));
+}, {passive: false});
+document.addEventListener('pointerup', e => {
+  if(!pen) return;
+  const P = pen; pen = null;
+  if(P.del){
+    if(Math.abs(e.clientX - P.x) + Math.abs(e.clientY - P.y) < 8){
+      const svg = P.del.closest('svg'), sc = svg.dataset.sc, k = svg.dataset.k, list = ((S.ink || {})[sc] || {})[k];
+      if(list){ list.splice(+P.del.dataset.i, 1); if(!list.length) delete S.ink[sc][k]; if(!Object.keys(S.ink[sc]).length) delete S.ink[sc]; save(); paintInk(); }
+    }
+    return;
+  }
+  P.svg.remove();
+  if(P.p.length < 6) return;
+  S.ink = S.ink || {}; const a = S.ink[P.sc] = S.ink[P.sc] || {};
+  (a[P.k] = a[P.k] || []).push({c: PEN_COLOR, w: Math.round(P.R.width), p: P.p});
+  save(); paintInk();
+});
 
 /* ---------- PWA (instalar como app) ---------- */
 const PWA = {prompt: null};
@@ -1874,7 +2082,7 @@ async function enter(name){
   } else Cloud.show('local');
   const nm = lsGet('uerj_nome:' + USER); if(nm && !S.set.nome){ S.set.nome = nm; }
   saveLocal(); if(Cloud.ok) Cloud.flush();
-  applyTheme(); document.body.classList.toggle('hlmode', HL_MODE); showWho(); Cloud.show(Cloud.state);
+  applyTheme(); syncTools(); showWho(); Cloud.show(Cloud.state);
   const p = new URLSearchParams(location.search);
   if(p.get('p')) route = {page: p.get('p'), tab: p.get('tab') || undefined, k: p.get('k') != null ? +p.get('k') : undefined};
   render();
