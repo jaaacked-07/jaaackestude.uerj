@@ -210,6 +210,26 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+.dq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.dq{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--surface);cursor:pointer;transition:border-color .15s, box-shadow .15s;min-width:0;border-top:3px solid var(--line-2)}
+.dq:hover{border-color:var(--line-2)}
+.dq.ok{border-top-color:var(--ok)} .dq.bad{border-top-color:var(--bad)}
+.dq-top{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.dq-n{color:var(--ink-3)}
+.dq-st{font-weight:600}
+.dq.ok .dq-st{color:var(--ok)} .dq.bad .dq-st{color:var(--bad)} .dq.no .dq-st{color:var(--ink-3);font-weight:400}
+.dq-t{font-size:13.5px;line-height:1.35;margin:6px 0 3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dq-more{display:none}
+.dq.open{grid-column:1 / -1;cursor:default;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.dq.open .dq-t{-webkit-line-clamp:unset;font-size:15px;font-weight:500}
+.dq.open .dq-more{display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.dq-stem{font-size:14px;line-height:1.6;margin:0}
+.dq-legend{gap:14px}
+.dq-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dq-dot.ok{background:var(--ok)} .dq-dot.bad{background:var(--bad)} .dq-dot.no{background:var(--line-2)}
+@media (max-width: 600px){ .dq-grid{grid-template-columns:repeat(2,1fr)} }
+
+
 .hero-n{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .hero-ok{font-size:15px;color:var(--ok);font-weight:600}
 .hero-ok span{color:var(--ink-3);font-weight:400}
@@ -960,7 +980,25 @@ function pHoje(){
   });
   route.i = i;
 }
-function totalsLine(){ const s = summary(); const d = S.days[today()], ds = d ? dayStats(d) : {ok: 0, bad: 0}; return `<div class="xs faint totals">Hoje: ${ds.ok} ${ds.ok === 1 ? 'acerto' : 'acertos'} · ${ds.bad} ${ds.bad === 1 ? 'erro' : 'erros'}<span class="dot"></span>No total: ${s.ok} acertos / ${s.bad} erros</div>`; }
+function totalsLine(noToday){ const s = summary(); const d = S.days[today()], ds = d ? dayStats(d) : {ok: 0, bad: 0}; return `<div class="xs faint totals">${noToday ? '' : `Hoje: ${ds.ok} ${ds.ok === 1 ? 'acerto' : 'acertos'} · ${ds.bad} ${ds.bad === 1 ? 'erro' : 'erros'}<span class="dot"></span>`}No total: ${s.ok} acertos / ${s.bad} erros</div>`; }
+/* resultado do dia: cartões compactos que expandem ao tocar */
+function dayCard(q, r, j){
+  const st = r ? (r.ok ? 'ok' : 'bad') : 'no';
+  const lab = {ok: 'Acertou', bad: 'Errou', no: 'Sem resposta'}[st];
+  const stem = q.x ? q.x + ' ' + q.s : q.s;
+  return `<div class="dq ${st}" data-dq="${q.id}" role="button" tabindex="0" aria-expanded="false">
+    <div class="dq-top"><span class="dq-n num">${j + 1}</span><span class="dq-st">${st === 'ok' ? '✓' : st === 'bad' ? '✕' : '–'} ${lab}</span></div>
+    <div class="dq-t">${esc(tema(q).tema)}</div>
+    <div class="dq-m xs faint">UERJ ${q.y} · Q${q.n}${q.g === 'X' ? ' · anulada' : ''}</div>
+    <div class="dq-more">
+      <div class="xs faint" style="margin-bottom:6px">${esc(area(q).label)} › ${esc(mat(q).nome)}</div>
+      <p class="dq-stem">${esc(stem.length > 280 ? stem.slice(0, 280).replace(/\s+\S*$/, '') + '…' : stem)}</p>
+      ${r ? `<p class="small" style="margin:8px 0 4px">Sua resposta: <b>${r.ch}</b> · Gabarito: <b>${q.g === 'X' ? 'anulada' : q.g}</b></p>` : ''}
+      <p class="small muted" style="margin:0 0 12px">${esc(q.k)}</p>
+      <button class="btn" data-q="${q.id}">Abrir questão completa →</button>
+    </div>
+  </div>`;
+}
 function pDia(){
   const date = route.date || today();
   const d = S.days[date];
@@ -978,12 +1016,18 @@ function pDia(){
       <div class="stat"><b class="num">${ds.bad}</b><span>erros</span></div>
       <div class="stat"><b class="num">${ds.n}/${d.ids.length}</b><span>respondidas</span></div>
     </div>
-    <div style="margin-top:12px">${totalsLine()}</div>
+    <div style="margin-top:12px">${totalsLine(true)}</div>
     <div class="section"><h3>Por especialidade</h3>${Object.keys(byArea).sort((a,b)=>a-b).map(k => hbar(A.areas[k].label, byArea[k].ok, byArea[k].n)).join('')}</div>
-    <div class="section"><h3>Questões do dia</h3><div>${d.ids.map((id,j) => qRow(QI[id], d.res[id] ? (d.res[id].ok?'ok':'bad') : 'no')).join('')}</div></div>
+    <div class="section"><div class="spread"><h3>Questões do dia</h3><div class="row xs faint dq-legend"><span><i class="dq-dot ok"></i>${ds.ok} acertos</span><span><i class="dq-dot bad"></i>${ds.bad} erros</span>${pending ? `<span><i class="dq-dot no"></i>${pending} sem resposta</span>` : ''}</div></div>
+      <div class="dq-grid">${d.ids.map((id, j) => dayCard(QI[id], d.res[id], j)).join('')}</div></div>
     ${errs.length ? `<div class="section"><p class="muted">Os ${errs.length} erros de hoje já entraram na sua revisão espaçada e voltam amanhã.</p></div>` : ''}
   </div>`;
   bindQRows(d.ids, 'Resultado do dia', () => go('dia', {date}), {k: 'dia', d: date});
+  document.querySelectorAll('[data-dq]').forEach(c => {
+    const tog = () => { const on = !c.classList.contains('open'); document.querySelectorAll('.dq.open').forEach(x => { x.classList.remove('open'); x.setAttribute('aria-expanded', 'false'); }); if(on){ c.classList.add('open'); c.setAttribute('aria-expanded', 'true'); } };
+    c.addEventListener('click', e => { if(e.target.closest('[data-q]')) return; tog(); });
+    c.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
+  });
 }
 function hbar(label, ok, n, extra){
   const p = pct(ok, n);
