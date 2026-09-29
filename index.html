@@ -212,16 +212,21 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+.cai-folds details.nb-group:first-of-type{border-top:1px solid var(--line)}
+@media (max-width: 600px){ .cai-years{display:none} }
+@keyframes tbInT{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+
 .tn.editing::after,.tn.editing::before{display:none}
 .tn-in{display:inline-block;min-width:4ch;max-width:100%;margin:0 4px;padding:1px 8px 2px;border-radius:7px;background:#FFF4C2;color:#5A4500;font-size:.82em;line-height:1.45;font-style:italic;white-space:pre-wrap;border:1.5px solid #D9B93A;outline:none;vertical-align:baseline;cursor:text;box-shadow:0 0 0 3px rgba(217,185,58,.18)}
 .tn-in:empty::before{content:attr(data-ph);color:#B9A15A}
 :root[data-theme="dark"] .tn-in{background:#3D3515;color:#F5E6A8}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tn-in{background:#3D3515;color:#F5E6A8} }
-.tb-float{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:45;filter:drop-shadow(0 6px 16px rgba(0,0,0,.14));animation:tbIn .18s ease-out}
+.tb-float{position:fixed;left:calc(232px + 18px);top:14px;z-index:45;filter:drop-shadow(0 6px 16px rgba(0,0,0,.14));animation:tbInT .18s ease-out}
 .tb-float .tbx{background:color-mix(in srgb, var(--surface) 96%, transparent);backdrop-filter:blur(8px)}
 .tb-float .tb span{display:none}
 @keyframes tbIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (max-width: 900px){ .tb-float{right:12px;bottom:calc(72px + env(safe-area-inset-bottom))} }
+@media (max-width: 900px){ .tb-float{left:12px;top:calc(10px + env(safe-area-inset-top))} }
 @media print{ .tb-float{display:none!important} }
 
 
@@ -1795,17 +1800,19 @@ function pCai(){
     const banca = Object.entries(A.banca).sort((a,b)=>b[1]-a[1]).slice(0,6);
     const sumB = Object.values(A.banca).reduce((a,b)=>a+b,0);
     body = `<p class="muted" style="margin-top:0">Dados da análise das ${A.total} questões de acesso direto (${A.anos[0]}–${A.anos[A.anos.length-1]}), sem estimativas externas.</p>
-      <div class="section" style="margin-top:28px"><h3>Peso de cada especialidade</h3>${A.areas.map(a => `<div class="hbar"><div>${esc(a.label)}</div><div class="trk"><i style="width:${100*a.total/maxA}%"></i></div><div class="v">${a.total}<span class="faint xs"> · ${dec(a.pct)}%</span></div></div>`).join('')}</div>
-      <div class="section"><h3>Subáreas que mais caem</h3>${A.top.slice(0,12).map(t => `<div class="li"><div class="t"><div>${esc(t.tema)} <span class="faint small">· ${esc(t.label)}</span></div><div class="xs faint">${t.n_anos} de 5 provas · tendência ${t.tendencia}</div></div><div class="num">${t.qtd}</div></div>`).join('')}</div>
-      <div class="section"><h3>Temas que se repetem</h3><p class="muted small" style="margin:-8px 0 12px">Temas cobrados duas ou mais vezes. Toque para estudar as questões do tema.</p>${topTemas.map(x => `<div class="li click" data-tema="${x.ai}.${x.mi}.${x.ti}"><div class="t"><div>${esc(x.t.tema)}</div><div class="xs faint">${esc(x.m.nome)} · ${esc(x.a.label)} · ${x.t.anos.join(', ')}</div></div><div class="num">${x.t.qtd}</div></div>`).join('')}</div>
-      <div class="section"><h3>O que a banca pergunta</h3>${banca.map(([k,v]) => `<div class="hbar"><div>${esc(k[0].toUpperCase()+k.slice(1))}</div><div class="trk"><i style="width:${100*v/banca[0][1]}%"></i></div><div class="v">${pct(v,sumB)}%</div></div>`).join('')}</div>`;
+      <div class="cai-folds" style="margin-top:24px">
+      <details class="nb-group"><summary><span class="nb-gt">Peso de cada especialidade</span><span class="faint small num">${A.areas.length} áreas</span></summary><div class="nb-gbody">${A.areas.map(a => `<div class="hbar"><div>${esc(a.label)}</div><div class="trk"><i style="width:${100*a.total/maxA}%"></i></div><div class="v">${a.total}<span class="faint xs"> · ${dec(a.pct)}%</span></div></div>`).join('')}</div></details>
+      <details class="nb-group"><summary><span class="nb-gt">Subáreas que mais caem</span><span class="faint small num">12</span></summary><div class="nb-gbody">${A.top.slice(0,12).map(t => `<div class="li"><div class="t"><div>${esc(t.tema)} <span class="faint small">· ${esc(t.label)}</span></div><div class="xs faint">${t.n_anos} de 5 provas · tendência ${t.tendencia}</div></div><div class="num">${t.qtd}</div></div>`).join('')}</div></details>
+      <details class="nb-group"><summary><span class="nb-gt">Temas que se repetem</span><span class="faint small num">${topTemas.length}</span></summary><div class="nb-gbody"><p class="muted small" style="margin:0 0 12px">Temas cobrados duas ou mais vezes. Toque para estudar as questões do tema.</p>${topTemas.map(x => `<div class="li click" data-tema="${x.ai}.${x.mi}.${x.ti}"><div class="t"><div>${esc(x.t.tema)}</div><div class="xs faint">${esc(x.m.nome)} · ${esc(x.a.label)} · ${x.t.anos.join(', ')}</div></div><div class="num">${x.t.qtd}</div></div>`).join('')}</div></details>
+      <details class="nb-group"><summary><span class="nb-gt">O que a banca pergunta</span><span class="faint small num">${banca.length}</span></summary><div class="nb-gbody">${banca.map(([k,v]) => `<div class="hbar"><div>${esc(k[0].toUpperCase()+k.slice(1))}</div><div class="trk"><i style="width:${100*v/banca[0][1]}%"></i></div><div class="v">${pct(v,sumB)}%</div></div>`).join('')}</div></details>
+      </div>`;
   } else {
     const a = A.areas[+tab];
     body = `<p class="muted" style="margin-top:0">${esc(a.resumo)}</p>
       <div class="legend" style="margin-top:20px">${[4,3,2,1].map(n => `<span><i style="background:${NIV[n][1]};border-radius:50%"></i>${NIV[n][0]}</span>`).join('')}</div>
-      ${a.materias.map((m,mi) => `<div class="section" style="margin-top:36px"><div class="spread"><h3><span class="lvl" style="background:${NIV[m.nivel][1]}"></span>${esc(m.nome)}</h3><span class="small muted num">${m.qtd} questões · ${Object.values(m.por_ano).join(' / ')} <span class="faint">(2022→2026)</span></span></div>
-        ${m.foco ? `<p class="muted small" style="margin:8px 0 12px">${esc(m.foco)}</p>` : ''}
-        <div class="list">${m.temas.map((t,ti) => `<div class="li click" data-tema="${tab}.${mi}.${ti}"><div class="t"><div>${esc(t.tema)}${t.prio?' <span class="tag">prioritário</span>':''}</div><div class="xs faint">${t.anos.join(', ')}${t.ponto && t.ponto!=='—' ? ' · '+esc(t.ponto) : ''}</div></div><div class="num">${t.qtd}</div></div>`).join('')}</div></div>`).join('')}`;
+      <div class="cai-folds" style="margin-top:24px">${a.materias.map((m,mi) => `<details class="nb-group"><summary><span class="nb-gt"><span class="lvl" style="background:${NIV[m.nivel][1]}"></span>${esc(m.nome)}</span><span class="small muted num">${m.qtd} questões<span class="cai-years"> · ${Object.values(m.por_ano).join(' / ')} <span class="faint">(2022→2026)</span></span></span></summary><div class="nb-gbody">
+        ${m.foco ? `<p class="muted small" style="margin:0 0 12px">${esc(m.foco)}</p>` : ''}
+        <div class="list">${m.temas.map((t,ti) => `<div class="li click" data-tema="${tab}.${mi}.${ti}"><div class="t"><div>${esc(t.tema)}${t.prio?' <span class="tag">prioritário</span>':''}</div><div class="xs faint">${t.anos.join(', ')}${t.ponto && t.ponto!=='—' ? ' · '+esc(t.ponto) : ''}</div></div><div class="num">${t.qtd}</div></div>`).join('')}</div></div></details>`).join('')}</div>`;
   }
   $('#view').innerHTML = `<div class="page wide"><div class="head"><div><h1>O que mais cai</h1></div></div>
     <div class="tabs" role="tablist">${tabs.map(([k,t]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${esc(t)}</button>`).join('')}</div>${body}</div>`;
