@@ -210,6 +210,60 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+/* v5: riscar alternativas, próxima no fim, sincronização no Início, cartões (cloze, frente e verso, oclusão) */
+.alt{grid-template-columns:30px 1fr auto}
+.alt .cm{grid-column:2 / 4}
+.cutb{all:unset;cursor:pointer;width:28px;height:28px;margin:-2px -6px 0 0;border-radius:7px;display:grid;place-items:center;color:var(--ink-3);opacity:.45;transition:opacity .15s, background .15s}
+.alt:hover .cutb,.cutb:focus-visible{opacity:.9}
+.cutb:hover{background:var(--sunk);opacity:1}
+.cutb[aria-pressed="true"]{opacity:1;color:var(--ink-2)}
+.alt.cut .at{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--ink-3)}
+.alt.cut .l{opacity:.45}
+.alt.cut{background:transparent}
+@media (pointer: coarse){ .cutb{opacity:.7} }
+.end-next{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+.sync-home{display:flex;align-items:center;gap:7px;margin-top:8px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;opacity:.8}
+.n-cz{background:color-mix(in srgb, var(--accent) 14%, transparent);border-bottom:1.5px dotted var(--accent);border-radius:3px;padding:0 2px}
+.study .n-cz{cursor:pointer;color:transparent;background:var(--sunk);border-bottom:1.5px solid var(--line-2);user-select:none}
+.study .n-cz *{color:transparent!important}
+.study .n-cz::after{content:"";}
+.study .n-cz.show{color:inherit;background:color-mix(in srgb, var(--accent) 14%, transparent);border-bottom-color:var(--accent)}
+.study .n-cz.show *{color:inherit!important}
+.nt-cz{font-size:12.5px!important;letter-spacing:-.02em;color:var(--accent)!important}
+.nt-kind{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-left:6px}
+.note-adds{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note-adds .note-add{margin-top:0}
+.fv-lab,.fc-lab{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:10px 14px 0}
+.fv-ed .note-ed{min-height:52px;padding-top:6px}
+.fv-ed .fv-b{border-top:0}
+.fv-ed .fv-lab + .fv-b{}
+.fv-ed .fv-lab:nth-of-type(2){border-top:1px dashed var(--line);margin-top:4px}
+.fc{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:8px 0;overflow:hidden}
+.fc .fc-lab{padding:10px 16px 0}
+.fc-f,.fc-b{padding:4px 16px 12px;font-size:15px;line-height:1.6}
+.fc-back{border-top:1px dashed var(--line)}
+.fc-show{all:unset;cursor:pointer;display:block;margin:0 16px 14px;font-size:13px;color:var(--accent);font-weight:500}
+.fc-show:hover{text-decoration:underline}
+.io-drop{margin:12px;border:1.5px dashed var(--line-2);border-radius:10px;padding:26px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink-2);font-size:14px;outline:none}
+.io-drop:focus{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 5%, transparent)}
+.io-stage{position:relative;display:inline-block;max-width:100%;line-height:0;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.io-ed{padding:12px}
+.io-edit{cursor:crosshair;touch-action:none;user-select:none}
+.io-img{display:block;max-width:100%;max-height:560px;height:auto;pointer-events:none}
+.io-box{position:absolute;background:var(--accent);border-radius:4px;box-shadow:0 0 0 1.5px var(--surface);transition:background .15s}
+.io-edit .io-box{background:color-mix(in srgb, var(--accent) 78%, transparent);cursor:pointer}
+.io-edit .io-box:hover{background:var(--bad)}
+.io-tmp{background:color-mix(in srgb, var(--accent) 35%, transparent)!important;border:1.5px dashed var(--accent);pointer-events:none}
+.io-hint{margin-top:8px;line-height:1.5}
+.io-view{margin:8px 0}
+.io-view:not(.study) .io-box{background:transparent;border:2px dashed var(--accent);box-shadow:none}
+.io-view.study .io-box{cursor:pointer}
+.io-view.study .io-box.show{background:transparent;border:2px solid var(--accent);box-shadow:none}
+.io-view .fc-show{margin:10px 0 0}
+.nb-big .fc,.nb-big .io-view{font-size:15px}
+
+
 /* ficha clínica, explicação marcável, várias anotações e imagens */
 .rv-mk{display:contents}
 .fb-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -480,10 +534,10 @@ const Cloud = {
       this.show('ok'); this.syncImgs();
     }catch(e){ console.warn(e); this.show('err'); }
   },
+  label(){ return !this.ok ? 'Salvo neste aparelho' : this.state === 'saving' ? 'Salvando…' : this.state === 'err' ? 'Sem conexão · salvo neste aparelho' : 'Sincronizado na nuvem'; },
   show(st){
     this.state = st;
-    const t = !this.ok ? 'Salvo neste aparelho' : st === 'saving' ? 'Salvando…' : st === 'err' ? 'Sem conexão · salvo no aparelho' : 'Sincronizado';
-    ['#syncS', '#syncM', '#syncW', '#syncW2'].forEach(s => { const el = document.querySelector(s); if(el) el.textContent = '· ' + t; });
+    const el = document.querySelector('#syncHome'); if(el) el.textContent = this.label();
   }
 };
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
@@ -627,7 +681,7 @@ function pInicio(){
   const doneAll = ds.n >= d.ids.length;
   const recent = Object.keys(S.days).sort().reverse().filter(k => Object.keys(S.days[k].res).length).slice(0,5);
   $('#view').innerHTML = `<div class="page">
-    <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}, ${esc(displayName())}.</h1></div></div>
+    <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}, ${esc(displayName())}.</h1><div class="xs faint sync-home"><span class="sync-dot"></span><span id="syncHome">${esc(Cloud.label())}</span></div></div></div>
     <div class="hero">
       <div>
         <div class="eyebrow">30 questões de hoje</div>
@@ -663,6 +717,17 @@ function qMeta(q, full){
   return `<div class="qmeta"><span>UERJ ${q.y}</span><span class="dot"></span><span>Questão ${q.n}</span><span class="dot"></span><span>${esc(area(q).label)}</span><span class="dot"></span><span>${esc(mat(q).nome)}</span><span class="dot"></span><span>${esc(t.tema)}</span><span class="dot"></span><span>${DIF[q.d]}</span>${q.g==='X'?' <span class="tag x">Anulada pela banca</span>':''}${t.prio?' <span class="tag">Tema prioritário</span>':''}</div>`;
 }
 /* opts: {mode:'estudo'|'prova', onAnswer(ok), chosen, reveal, nav:{prev,next,label}} */
+/* riscar alternativas descartadas (vale até responder; guardado só durante o uso) */
+const CUT = {};
+const CUT_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M16 5.5c-.9-1-2.3-1.5-4-1.5-2.5 0-4.2 1.3-4.2 3.2 0 1.3.8 2.2 2.4 2.8"/><path d="M8 18.5c.9 1 2.4 1.5 4.2 1.5 2.6 0 4.3-1.4 4.3-3.4 0-1-.4-1.8-1.3-2.4"/><path d="M4 12h16"/></svg>';
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.cutb'); if(!b) return;
+  e.stopPropagation(); e.preventDefault();
+  const alt = b.closest('.alt'), qid = CURQ, Lt = b.dataset.cut; if(!qid) return;
+  const arr = CUT[qid] = CUT[qid] || []; const i = arr.indexOf(Lt);
+  if(i >= 0) arr.splice(i, 1); else arr.push(Lt);
+  const on = i < 0; alt.classList.toggle('cut', on); b.setAttribute('aria-pressed', String(on)); b.title = on ? 'Desfazer risco' : 'Riscar alternativa (descartar)';
+}, true);
 function questionHTML(q, o){
   const answered = o.reveal;
   const ch = o.chosen;
@@ -671,7 +736,8 @@ function questionHTML(q, o){
     let cls = '';
     if(answered){ if(Lt === q.g) cls = 'ok'; else if(Lt === ch) cls = 'bad'; cls += ' done'; }
     const cm = answered ? `<div class="cm">${Lt===q.g?'<b>Correta.</b> ':''}${esc(q.c[i])}</div>` : '';
-    return `<div role="button" class="alt ${cls}" data-alt="${Lt}" aria-pressed="${!answered && ch===Lt}" tabindex="${answered?'-1':'0'}"><span class="l">${Lt}</span><span class="at" data-mk="o${i}">${esc(txt)}</span>${cm}</div>`;
+    const cut = !answered && (CUT[q.id] || []).includes(Lt);
+    return `<div role="button" class="alt ${cls}${cut ? ' cut' : ''}" data-alt="${Lt}" aria-pressed="${!answered && ch===Lt}" tabindex="${answered?'-1':'0'}"><span class="l">${Lt}</span><span class="at" data-mk="o${i}">${esc(txt)}</span>${answered ? '' : `<button type="button" class="cutb" data-cut="${Lt}" aria-pressed="${cut}" title="${cut ? 'Desfazer risco' : 'Riscar alternativa (descartar)'}" aria-label="Riscar alternativa ${Lt}">${CUT_ICON}</button>`}${cm}</div>`;
   }).join('');
   CURQ = q.id;
   return `${qMeta(q, answered || o.meta)}
@@ -757,6 +823,7 @@ function studyRunner(q, ctx){
         </div>
       </div>
       ${rev ? feedbackHTML(q, chosen) : ''}
+      ${rev && ctx.next ? `<div class="end-next">${ctx.prev ? '<button class="btn ghost" id="prevBtn2">Anterior</button>' : '<span></span>'}<button class="btn primary" id="nextBtn2">${ctx.nextLabel || 'Próxima'} →</button></div>` : ''}
     </div>`;
     paintMarks();
     $('#backBtn').onclick = ctx.onBack;
@@ -769,7 +836,8 @@ function studyRunner(q, ctx){
     } else {
       bindFeedback(q);
       $('#favBtn').onclick = () => { if(S.fav[q.id]) delete S.fav[q.id]; else S.fav[q.id] = Date.now(); save(); draw(); };
-      if(ctx.next) $('#nextBtn').onclick = ctx.next;
+      if(ctx.next){ $('#nextBtn').onclick = ctx.next; if($('#nextBtn2')) $('#nextBtn2').onclick = ctx.next; }
+      if(ctx.prev && $('#prevBtn2')) $('#prevBtn2').onclick = ctx.prev;
     }
     if(ctx.prev) $('#prevBtn').onclick = ctx.prev;
   };
@@ -795,7 +863,7 @@ function studyRunner(q, ctx){
   draw();
 }
 let keyHandler = null;
-document.addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.alt[role=button]')){ e.preventDefault(); e.target.click(); return; } if(keyHandler && ['q','hoje','revrun','simrun'].includes(route.page)) keyHandler(e); });
+document.addEventListener('keydown', e => { if(e.target.isContentEditable || (e.target.closest && e.target.closest('.note-wrap'))) return; if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.alt[role=button]')){ e.preventDefault(); e.target.click(); return; } if(keyHandler && ['q','hoje','revrun','simrun'].includes(route.page)) keyHandler(e); });
 
 /* ---------- 30 do dia ---------- */
 function pHoje(){
@@ -1069,7 +1137,7 @@ function revRun(ids, i, tab){
     next: () => revRun(ids, i+1, tab), nextLabel: i === ids.length-1 ? 'Concluir' : 'Próxima'});
 }
 
-/* ---------- anotações: várias por questão, negrito, cores e imagens coladas ---------- */
+/* ---------- anotações: texto (com cloze), frente e verso, oclusão de imagem ---------- */
 let NOTE_SRC = {k: 'livre'};
 function srcLabel(src){
   if(!src) return 'Estudo livre';
@@ -1079,7 +1147,7 @@ function srcLabel(src){
 }
 function srcOrder(src){ if(!src) return '0'; if(src.k === 'dia') return '2' + src.d; if(src.k === 'sim') return '1' + String(src.n).padStart(4, '0'); return '0'; }
 function sanitizeNote(html){
-  const box = document.createElement('div'); box.innerHTML = html;
+  const box = document.createElement('div'); box.innerHTML = html || '';
   const out = document.createElement('div');
   const walk = (src, dst) => {
     for(const n of src.childNodes){
@@ -1089,6 +1157,7 @@ function sanitizeNote(html){
       let el = null;
       if(tag === 'BR'){ dst.appendChild(document.createElement('br')); continue; }
       if(tag === 'IMG'){ const id = n.getAttribute('data-img'); if(id && /^[a-z0-9]{4,16}$/.test(id)){ const im = document.createElement('img'); im.className = 'n-img'; im.setAttribute('data-img', id); dst.appendChild(im); } continue; }
+      if(n.classList && n.classList.contains('n-cz')){ const cz = document.createElement('span'); cz.className = 'n-cz'; dst.appendChild(cz); walk(n, cz); continue; }
       if(tag === 'B' || tag === 'STRONG' || (n.style && (n.style.fontWeight === 'bold' || +n.style.fontWeight >= 600))) el = document.createElement('b');
       const col = (n.getAttribute('color') || (n.style && n.style.color) || '').toLowerCase().replace(/\s/g, '');
       const isRed = n.classList && n.classList.contains('n-red') || /^(#c0392b|rgb\(192,57,43\)|red)$/.test(col);
@@ -1102,46 +1171,90 @@ function sanitizeNote(html){
   walk(box, out);
   return out.innerHTML;
 }
-/* cada questão guarda a anotação principal em S.notes[id] e as extras em S.notes[id].more */
+/* S.notes[id] = anotação principal (texto); S.notes[id].more[] = extras: {ty:'txt'|'fv'|'io', ...} */
+const PART_T = {txt: 'Anotação', fv: 'Frente e verso', io: 'Oclusão de imagem'};
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent; };
+function partText(p){
+  if(p.ty === 'fv') return [plain(p.f).trim(), plain(p.b).trim()].filter(Boolean).join(' → ');
+  if(p.ty === 'io') return p.img ? 'Oclusão de imagem' + (p.boxes && p.boxes.length ? ' (' + p.boxes.length + ')' : '') : '';
+  return plain(p.html);
+}
 function noteHTMLOf(p){ return p ? (p.html != null ? p.html : esc(p.txt || '').replace(/\n/g, '<br>')) : ''; }
-function partHas(p){ return !!(p && (String(p.txt || '').trim() || /data-img=/.test(p.html || ''))); }
+function partHas(p){ return !!(p && (String(p.txt || '').trim() || /data-img=/.test(p.html || '') || (p.ty === 'io' && p.img))); }
 function hasNote(n){ return !!n && (partHas(n) || (n.more || []).some(partHas)); }
 function noteParts(id){ const n = S.notes[id]; if(!n) return []; return [n, ...(n.more || [])].map((p, i) => ({i, p})).filter(x => partHas(x.p)); }
 function noteText(n){ return n ? [n, ...(n.more || [])].filter(partHas).map(p => String(p.txt || '').trim() || '[imagem]').join(' · ') : ''; }
-function setNote(id, idx, html){
+function setPart(id, idx, patch){
   const n = S.notes[id] = S.notes[id] || {};
   let p = n;
   if(idx > 0){ n.more = n.more || []; p = n.more[idx - 1] = n.more[idx - 1] || {}; }
-  const clean = sanitizeNote(html);
-  const tmp = document.createElement('div'); tmp.innerHTML = clean;
-  p.html = clean; p.txt = tmp.textContent; p.u = Date.now();
+  const isNew = !partHas(p);
+  Object.assign(p, patch);
+  p.txt = partText(p); p.u = Date.now();
   if(!p.t) p.t = p.u;
   if(!p.src) p.src = Object.assign({}, NOTE_SRC);
   S.nsrs = S.nsrs || {};
-  if(hasNote(n)){ if(!S.nsrs[id] || S.nsrs[id].done && idx > 0 && p.t === p.u) S.nsrs[id] = {step: 0, due: addDays(today(), SRS_STEPS[0])}; }
+  if(hasNote(n)){ if(!S.nsrs[id] || (S.nsrs[id].done && isNew && partHas(p))) S.nsrs[id] = {step: 0, due: addDays(today(), SRS_STEPS[0])}; }
   else delete S.nsrs[id];
   save();
 }
+function setNote(id, idx, html){ setPart(id, idx, {html: sanitizeNote(html)}); }
+
+/* visualização: study = modo revisão (cloze escondido, verso escondido, oclusões cobertas) */
+function partView(p, study){
+  const sc = study ? ' study' : '';
+  if(p.ty === 'fv') return `<div class="fc${sc}"><div class="fc-lab">Frente</div><div class="fc-f">${p.f || ''}</div>
+    <div class="fc-back"${study ? ' hidden' : ''}><div class="fc-lab">Verso</div><div class="fc-b">${p.b || ''}</div></div>
+    ${study ? '<button type="button" class="fc-show">Mostrar verso</button>' : ''}</div>`;
+  if(p.ty === 'io') return `<div class="io-view${sc}"><div class="io-stage"><img class="io-img" data-img="${esc(p.img)}" alt="Imagem da oclusão">${(p.boxes || []).map(b => `<span class="io-box" style="left:${b[0] * 100}%;top:${b[1] * 100}%;width:${b[2] * 100}%;height:${b[3] * 100}%"></span>`).join('')}</div>
+    ${study ? '<button type="button" class="fc-show io-all">Mostrar tudo</button>' : ''}</div>`;
+  return `<div class="nb-note${sc}">${noteHTMLOf(p)}</div>`;
+}
+/* modo revisão: tocar no cloze ou na oclusão revela */
+document.addEventListener('click', e => {
+  const t = e.target;
+  if(!t.closest) return;
+  const cz = t.closest('.study .n-cz'); if(cz){ cz.classList.toggle('show'); return; }
+  const bx = t.closest('.io-view.study .io-box'); if(bx){ bx.classList.toggle('show'); return; }
+  const sh = t.closest('.fc-show');
+  if(sh){ const fc = sh.closest('.fc'); if(fc){ fc.querySelector('.fc-back').hidden = false; sh.remove(); } else { sh.closest('.io-view').querySelectorAll('.io-box').forEach(b => b.classList.add('show')); sh.remove(); } }
+});
+
 const IMG_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>';
 function noteWhere(p){ return partHas(p) ? 'Salva no Caderno de Erros · ' + srcLabel(p.src) : 'Vai para o Caderno de Erros em "' + srcLabel(NOTE_SRC) + '"'; }
-function noteBox(i, p){
-  return `<div class="note-wrap" data-ni="${i}">
-    <div class="note-tools" role="toolbar" aria-label="Formatação da anotação">
-      <button type="button" data-cmd="bold" title="Negrito"><b>N</b></button>
+function toolsHTML(i, p, ty){
+  const fmt = ty !== 'io' ? `<button type="button" data-cmd="bold" title="Negrito"><b>N</b></button>
       <button type="button" data-cmd="red" title="Letra vermelha" class="nt-red">A</button>
       <button type="button" data-cmd="ink" title="Letra preta" class="nt-ink">A</button>
-      <button type="button" data-cmd="img" title="Inserir imagem (ou copie e cole com Ctrl+V)">${IMG_ICON}</button>
+      <button type="button" data-cmd="cloze" title="Cloze: selecione um trecho e clique. Na revisão ele fica escondido até você tocar." class="nt-cz">[…]</button>` : '';
+  const img = ty === 'txt' ? `<button type="button" data-cmd="img" title="Inserir imagem (ou copie e cole com Ctrl+V)">${IMG_ICON}</button>` : '';
+  return `<div class="note-tools" role="toolbar" aria-label="Formatação da anotação">${fmt}${img}
+      ${ty !== 'txt' ? `<span class="nt-kind">${PART_T[ty]}</span>` : ''}
       <span class="xs faint nt-where">${esc(noteWhere(p))}</span>
-      ${i > 0 ? '<button type="button" data-cmd="del" title="Apagar esta anotação" class="nt-del">×</button>' : ''}
-    </div>
-    <div class="note-ed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${i ? 'Mais uma anotação…' : 'Escreva com suas palavras o que precisa lembrar. Cole imagens com Ctrl+V.'}">${noteHTMLOf(p)}</div>
-  </div>`;
+      ${i > 0 ? '<button type="button" data-cmd="del" title="Apagar" class="nt-del">×</button>' : ''}
+    </div>`;
 }
+function noteBox(i, p, ty){
+  ty = (p && p.ty) || ty || 'txt';
+  let body;
+  if(ty === 'fv') body = `<div class="fv-ed"><div class="fv-lab">Frente</div><div class="note-ed fv-f" contenteditable="true" role="textbox" data-ph="Pergunta (ex.: Critérios de Tóquio para colecistite?)">${(p && p.f) || ''}</div>
+      <div class="fv-lab">Verso</div><div class="note-ed fv-b" contenteditable="true" role="textbox" data-ph="Resposta">${(p && p.b) || ''}</div></div>`;
+  else if(ty === 'io') body = `<div class="io-ed">${p && p.img ? ioStageHTML(p) : ioDropHTML()}</div>`;
+  else body = `<div class="note-ed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${i ? 'Mais uma anotação…' : 'Escreva com suas palavras o que precisa lembrar. Shift+Enter pula linha; cole imagens com Ctrl+V.'}">${noteHTMLOf(p)}</div>`;
+  return `<div class="note-wrap" data-ni="${i}" data-ty="${ty}">${toolsHTML(i, p, ty)}${body}</div>`;
+}
+function ioDropHTML(){ return `<div class="io-drop" tabindex="0"><div>${IMG_ICON}</div><div>Cole uma imagem (Ctrl+V) ou <button type="button" class="linkbtn io-pick">escolha um arquivo</button></div><div class="xs faint">Depois arraste sobre a imagem para cobrir o que quer esconder.</div></div>`; }
+function ioStageHTML(p){ return `<div class="io-stage io-edit"><img class="io-img" data-img="${esc(p.img)}" alt="" draggable="false">${(p.boxes || []).map((b, k) => `<span class="io-box" data-k="${k}" title="Toque para apagar" style="left:${b[0] * 100}%;top:${b[1] * 100}%;width:${b[2] * 100}%;height:${b[3] * 100}%"></span>`).join('')}</div>
+  <div class="xs faint io-hint">Arraste sobre a imagem para cobrir um trecho · toque num retângulo para apagar · ${(p.boxes || []).length} ${(p.boxes || []).length === 1 ? 'oclusão' : 'oclusões'}</div>`; }
 function noteEditorHTML(q){
   const n = S.notes[q.id];
   if(n && n.more) n.more = n.more.filter(partHas);
-  return `<div id="notesBox">${noteBox(0, n)}${((n && n.more) || []).map((p, j) => noteBox(j + 1, p)).join('')}</div>
-    <button type="button" class="note-add" id="noteAdd" title="Fazer mais uma anotação nesta questão"><span aria-hidden="true">+</span> Nova anotação</button>
+  return `<div id="notesBox">${noteBox(0, n, 'txt')}${((n && n.more) || []).map((p, j) => noteBox(j + 1, p)).join('')}</div>
+    <div class="note-adds"><span class="xs faint">Adicionar</span>
+      <button type="button" class="note-add" data-add="txt" title="Mais uma anotação nesta questão"><span aria-hidden="true">+</span> Anotação</button>
+      <button type="button" class="note-add" data-add="fv" title="Cartão com pergunta e resposta"><span aria-hidden="true">+</span> Frente e verso</button>
+      <button type="button" class="note-add" data-add="io" title="Esconda partes de uma imagem para testar a memória"><span aria-hidden="true">+</span> Oclusão de imagem</button>
+    </div>
     <input type="file" accept="image/*" id="noteFile" hidden>`;
 }
 /* imagens: comprimidas no aparelho, guardadas à parte (não pesam no progresso) e sincronizadas uma a uma */
@@ -1163,11 +1276,14 @@ async function shrinkImage(file){
     return d;
   } finally { URL.revokeObjectURL(url); }
 }
+async function storeImage(file){
+  if(!file || !/^image\//.test(file.type)) return null;
+  let d; try{ d = await shrinkImage(file); }catch(e){ toast('Não consegui ler essa imagem.'); return null; }
+  const id = newImgId(); imgPut(id, d); return {id, d};
+}
 async function insertNoteImage(ed, file){
-  if(!file || !/^image\//.test(file.type)) return;
-  let d; try{ d = await shrinkImage(file); }catch(e){ toast('Não consegui ler essa imagem.'); return; }
-  const id = newImgId(); imgPut(id, d);
-  const html = `<img class="n-img" data-img="${id}" src="${d}"><br>`;
+  const r = await storeImage(file); if(!r) return;
+  const html = `<img class="n-img" data-img="${r.id}" src="${r.d}"><br>`;
   const s = window.getSelection();
   if(s && s.rangeCount && ed.contains(s.anchorNode)) document.execCommand('insertHTML', false, html);
   else ed.insertAdjacentHTML('beforeend', html);
@@ -1183,32 +1299,52 @@ function hydrateImgs(){
   });
 }
 new MutationObserver(() => { clearTimeout(hydT); hydT = setTimeout(hydrateImgs, 20); }).observe(document.body, {childList: true, subtree: true});
+
+/* cloze: envolve a seleção (ou desfaz, se já for cloze) */
+function toggleCloze(ed){
+  const s = window.getSelection(); if(!s || !s.rangeCount) return;
+  const r = s.getRangeAt(0); if(!ed.contains(r.commonAncestorContainer)) return;
+  const anc = (r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement).closest('.n-cz');
+  if(anc && ed.contains(anc)){ anc.replaceWith(...anc.childNodes); return; }
+  if(r.collapsed || !String(r).trim()){ toast('Selecione o trecho que quer esconder e toque em […].'); return; }
+  const sp = document.createElement('span'); sp.className = 'n-cz';
+  sp.appendChild(r.extractContents()); r.insertNode(sp);
+  s.removeAllRanges();
+}
 let NOTE_IMG_TARGET = null;
 function bindNoteBox(q, wrap){
-  const ed = wrap.querySelector('.note-ed'), idx = +wrap.dataset.ni;
+  const idx = +wrap.dataset.ni, ty = wrap.dataset.ty;
+  const cur = () => { const n = S.notes[q.id] || {}; return idx ? (n.more || [])[idx - 1] : n; };
+  const where = () => { const p = cur(); wrap.querySelector('.nt-where').textContent = partHas(p) ? 'Salva no Caderno de Erros · ' + srcLabel(p.src) : ''; renderNav(); };
   let t;
   const commit = () => { clearTimeout(t); t = setTimeout(() => {
-    setNote(q.id, idx, ed.innerHTML);
-    const n = S.notes[q.id], p = idx ? (n.more || [])[idx - 1] : n;
-    wrap.querySelector('.nt-where').textContent = partHas(p) ? 'Salva no Caderno de Erros · ' + srcLabel(p.src) : '';
-    renderNav();
+    if(ty === 'fv') setPart(q.id, idx, {ty: 'fv', f: sanitizeNote(wrap.querySelector('.fv-f').innerHTML), b: sanitizeNote(wrap.querySelector('.fv-b').innerHTML)});
+    else if(ty === 'txt') setPart(q.id, idx, Object.assign(idx ? {ty: 'txt'} : {}, {html: sanitizeNote(wrap.querySelector('.note-ed').innerHTML)}));
+    where();
   }, 400); };
-  ed.addEventListener('input', commit);
-  ed.addEventListener('paste', e => {
-    const cd = e.clipboardData; if(!cd) return;
-    const files = [...cd.items || []].filter(it => it.kind === 'file' && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
-    e.preventDefault();
-    if(files.length){ files.forEach(f => insertNoteImage(ed, f)); return; }
-    const txt = cd.getData('text/plain'); if(txt) document.execCommand('insertText', false, txt);
+  let lastEd = wrap.querySelector('.note-ed');
+  wrap.querySelectorAll('.note-ed').forEach(ed => {
+    ed.addEventListener('focus', () => lastEd = ed);
+    ed.addEventListener('input', commit);
+    ed.addEventListener('keydown', e => { if(e.key === 'Enter' && e.shiftKey){ e.preventDefault(); document.execCommand('insertLineBreak'); commit(); } });
+    ed.addEventListener('paste', e => {
+      const cd = e.clipboardData; if(!cd) return;
+      const files = [...cd.items || []].filter(it => it.kind === 'file' && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
+      e.preventDefault();
+      if(files.length && ty === 'txt'){ files.forEach(f => insertNoteImage(ed, f)); return; }
+      const txt = cd.getData('text/plain'); if(txt) document.execCommand('insertText', false, txt);
+    });
+    if(ty === 'txt') ed.addEventListener('drop', e => { const f = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(x => /^image\//.test(x.type)); if(f.length){ e.preventDefault(); f.forEach(x => insertNoteImage(ed, x)); } });
   });
-  ed.addEventListener('drop', e => { const f = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(x => /^image\//.test(x.type)); if(f.length){ e.preventDefault(); f.forEach(x => insertNoteImage(ed, x)); } });
   wrap.querySelectorAll('.note-tools [data-cmd]').forEach(b => {
     b.addEventListener('mousedown', e => e.preventDefault());
     b.onclick = () => {
       const c = b.dataset.cmd;
-      if(c === 'img'){ NOTE_IMG_TARGET = ed; $('#noteFile').click(); return; }
-      if(c === 'del'){ if(partHas(idx ? (S.notes[q.id].more || [])[idx - 1] : null) && !confirm('Apagar esta anotação?')) return; ed.innerHTML = ''; clearTimeout(t); setNote(q.id, idx, ''); wrap.remove(); renderNav(); return; }
-      ed.focus();
+      if(c === 'img'){ NOTE_IMG_TARGET = lastEd; $('#noteFile').click(); return; }
+      if(c === 'del'){ if(partHas(cur()) && !confirm('Apagar esta anotação?')) return; clearTimeout(t); setPart(q.id, idx, {html: '', f: '', b: '', img: '', boxes: []}); wrap.remove(); renderNav(); return; }
+      if(!lastEd) return;
+      lastEd.focus();
+      if(c === 'cloze'){ toggleCloze(lastEd); commit(); return; }
       try{ document.execCommand('styleWithCSS', false, false); }catch(e){}
       if(c === 'bold') document.execCommand('bold');
       if(c === 'red') document.execCommand('foreColor', false, '#c0392b');
@@ -1216,18 +1352,52 @@ function bindNoteBox(q, wrap){
       commit();
     };
   });
+  if(ty === 'io') bindIO(q, wrap, idx, cur, where);
 }
+/* oclusão de imagem: colar/escolher imagem e desenhar retângulos */
+function bindIO(q, wrap, idx, cur, where){
+  const host = wrap.querySelector('.io-ed');
+  const redraw = () => { const p = cur(); host.innerHTML = p && p.img ? ioStageHTML(p) : ioDropHTML(); bindIO(q, wrap, idx, cur, where); };
+  const useFile = async f => { const r = await storeImage(f); if(!r) return; setPart(q.id, idx, {ty: 'io', img: r.id, boxes: []}); where(); redraw(); };
+  const drop = host.querySelector('.io-drop');
+  if(drop){
+    drop.querySelector('.io-pick').onclick = () => { NOTE_IMG_TARGET = {io: useFile}; $('#noteFile').click(); };
+    drop.addEventListener('paste', e => { const f = [...(e.clipboardData && e.clipboardData.items || [])].filter(it => it.kind === 'file' && /^image\//.test(it.type)).map(it => it.getAsFile())[0]; if(f){ e.preventDefault(); useFile(f); } });
+    drop.addEventListener('dragover', e => e.preventDefault());
+    drop.addEventListener('drop', e => { const f = [...(e.dataTransfer && e.dataTransfer.files || [])].find(x => /^image\//.test(x.type)); if(f){ e.preventDefault(); useFile(f); } });
+    drop.__io = useFile;
+    return;
+  }
+  const st = host.querySelector('.io-stage');
+  st.querySelectorAll('.io-box').forEach(bx => bx.addEventListener('pointerdown', e => {
+    e.stopPropagation(); e.preventDefault();
+    const p = cur(); const boxes = (p.boxes || []).slice(); boxes.splice(+bx.dataset.k, 1);
+    setPart(q.id, idx, {boxes}); redraw();
+  }));
+  let start = null, tmp = null;
+  const pt = e => { const r = st.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
+  st.addEventListener('pointerdown', e => { if(e.target.classList.contains('io-box')) return; e.preventDefault(); st.setPointerCapture(e.pointerId); start = pt(e); tmp = document.createElement('span'); tmp.className = 'io-box io-tmp'; st.appendChild(tmp); });
+  st.addEventListener('pointermove', e => { if(!start) return; const [x, y] = pt(e); const l = Math.min(x, start[0]), tp = Math.min(y, start[1]); Object.assign(tmp.style, {left: l * 100 + '%', top: tp * 100 + '%', width: Math.abs(x - start[0]) * 100 + '%', height: Math.abs(y - start[1]) * 100 + '%'}); });
+  st.addEventListener('pointerup', e => {
+    if(!start) return; const [x, y] = pt(e); const b = [Math.min(x, start[0]), Math.min(y, start[1]), Math.abs(x - start[0]), Math.abs(y - start[1])]; start = null;
+    if(b[2] < .015 || b[3] < .015){ tmp.remove(); return; }
+    const p = cur(); setPart(q.id, idx, {boxes: (p.boxes || []).concat([b.map(v => Math.round(v * 1000) / 1000)])}); redraw();
+  });
+}
+document.addEventListener('paste', e => { const d = document.activeElement && document.activeElement.closest && document.activeElement.closest('.io-drop'); if(d && d.__io && e.target === document.body){ const f = [...(e.clipboardData && e.clipboardData.items || [])].filter(it => it.kind === 'file' && /^image\//.test(it.type)).map(it => it.getAsFile())[0]; if(f){ e.preventDefault(); d.__io(f); } } });
 function bindNoteEditor(q){
   const box = $('#notesBox'); if(!box) return;
   box.querySelectorAll('.note-wrap').forEach(w => bindNoteBox(q, w));
-  $('#noteFile').onchange = e => { const f = e.target.files[0]; if(f && NOTE_IMG_TARGET) insertNoteImage(NOTE_IMG_TARGET, f); e.target.value = ''; };
-  $('#noteAdd').onclick = () => {
+  $('#noteFile').onchange = e => { const f = e.target.files[0]; if(f && NOTE_IMG_TARGET){ if(NOTE_IMG_TARGET.io) NOTE_IMG_TARGET.io(f); else insertNoteImage(NOTE_IMG_TARGET, f); } e.target.value = ''; };
+  document.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
     const n = S.notes[q.id] || {};
     const used = [...box.querySelectorAll('.note-wrap')].map(w => +w.dataset.ni);
     const idx = Math.max(((n.more || []).length), ...used) + 1;
-    box.insertAdjacentHTML('beforeend', noteBox(idx, null));
-    const w = box.lastElementChild; bindNoteBox(q, w); w.querySelector('.note-ed').focus();
-  };
+    box.insertAdjacentHTML('beforeend', noteBox(idx, null, b.dataset.add));
+    const w = box.lastElementChild; bindNoteBox(q, w);
+    const f = w.querySelector('.note-ed, .io-drop'); if(f) f.focus();
+    w.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+  });
 }
 
 /* ---------- Caderno de Erros ---------- */
@@ -1254,8 +1424,8 @@ function pCaderno(){
   const card = x => {
     const q = QI[x.id], n = S.notes[x.id], st = status(x.id);
     return `<article class="nb-card">
-      <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.i > 0 ? '<span class="tag">+ anotação</span>' : ''}</div>
-      <div class="nb-note">${noteHTMLOf(x.p)}</div>
+      <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.i > 0 ? `<span class="tag">${PART_T[x.p.ty || 'txt']}</span>` : ''}</div>
+      ${partView(x.p, false)}
       <div class="nb-act"><span class="xs faint">${esc(srcLabel(x.p.src))}</span><button class="linkbtn" data-openq="${x.id}">Abrir questão →</button></div>
     </article>`;
   };
@@ -1287,7 +1457,8 @@ function noteRun(ids, i){
     <div class="eyebrow">Minhas anotações · ${esc(srcLabel((parts[0] || {p: n}).p.src))}</div>
     <h2 style="margin:8px 0 6px">${esc(tema(q).tema)}</h2>
     <div class="qmeta" style="margin-bottom:22px"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)}</span>${n.why ? ` <span class="tag">${esc(n.why)}</span>` : ''}</div>
-    ${parts.map(x => `<div class="nb-note nb-big">${noteHTMLOf(x.p)}</div>`).join('')}
+    ${parts.some(x => x.p.ty === 'fv' || x.p.ty === 'io' || /n-cz/.test(x.p.html || '')) ? '<p class="xs faint" style="margin:-8px 0 14px">Tente lembrar antes de revelar: toque nos trechos escondidos, em "Mostrar verso" ou nas áreas cobertas.</p>' : ''}
+    ${parts.map(x => `<div class="nb-big">${partView(x.p, true)}</div>`).join('')}
     <details style="margin-top:20px"><summary>Relembrar a questão</summary><p class="small" style="margin-top:10px">${esc(q.x ? q.x + ' ' + q.s : q.s)}</p><p class="small muted">Gabarito: ${q.g} · ${esc(q.k)}</p></details>
     <div class="actions" style="margin-top:30px">
       <button class="btn" id="openBtn">Abrir questão completa</button>
@@ -1639,7 +1810,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigat
 
 /* ---------- login e início ---------- */
 function displayName(){ const n = (S.set && S.set.nome) || lsGet('uerj_nome:' + USER) || USER; return n ? n.charAt(0).toUpperCase() + n.slice(1) : ''; }
-function showWho(){ const html = `<span class="who-dot"></span>${esc(displayName())} <span class="faint" id="syncW">${esc(document.querySelector('#syncS') ? document.querySelector('#syncS').textContent : '')}</span>`; ['#whoS', '#whoM'].forEach(k => { const el = document.querySelector(k); if(el) el.innerHTML = html.replace('id="syncW"', k === '#whoM' ? 'id="syncW2"' : 'id="syncW"'); }); }
+function showWho(){ const html = `<span class="who-dot"></span>${esc(displayName())}`; ['#whoS', '#whoM'].forEach(k => { const el = document.querySelector(k); if(el) el.innerHTML = html; }); }
 function normUser(s){ return String(s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
 async function enter(name){
   USER = name; SKEY = SKEY_BASE + ':' + USER; lsSet('uerj_user', USER);
