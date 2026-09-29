@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Banco UERJ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121316" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Banco UERJ">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
@@ -200,6 +209,17 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button:hover{background:rgba(255,255,255,.12)}
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
+.who{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);padding:0 10px;margin-top:-14px;flex-wrap:wrap}
+.who-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block}
+.who .faint{font-size:11.5px}
+.hlbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);padding:6px 11px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.hlbtn:hover{color:var(--ink);border-color:var(--line-2)}
+.hlbtn[aria-pressed="true"]{background:#FFE58A;border-color:#E6C24A;color:#3A2E00}
+:root[data-theme="dark"] .hlbtn[aria-pressed="true"]{background:#6B5A1E;border-color:#8A7427;color:#FFF3C4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .hlbtn[aria-pressed="true"]{background:#6B5A1E;border-color:#8A7427;color:#FFF3C4} }
+body.hlmode .stem, body.hlmode .ctx, body.hlmode .alt .at{cursor:text}
+body.hlmode #view ::selection{background:#FFE58A;color:inherit}
+@media (max-width: 900px){ .hlbtn span{display:none} .hlbtn{padding:7px 9px} .who{margin-top:0} }
 
 @media (max-width: 900px){
   .app{grid-template-columns:1fr}
@@ -242,16 +262,17 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 <div class="app" id="app" hidden>
   <aside class="side">
     <div class="brand">Banco UERJ<small>Residência médica · 2022–2026</small></div>
+    <div class="who" id="whoS"></div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
-      <span class="xs faint" id="syncS"></span>
+      <span class="xs faint" id="syncS" hidden></span>
       <button class="linkbtn" id="themeBtn">Tema claro / escuro</button>
       <button class="linkbtn" data-go="ajustes">Ajustes e backup</button>
       <button class="linkbtn" id="logoutBtn">Sair</button>
     </div>
   </aside>
   <main>
-    <div class="mtop"><div class="brand" style="padding:0">Banco UERJ</div><span class="row" style="gap:14px"><span class="xs faint" id="syncM"></span><button class="linkbtn" data-go="ajustes">Ajustes</button></span></div>
+    <div class="mtop"><div><div class="brand" style="padding:0">Banco UERJ</div><div class="who" id="whoM" style="padding:0;margin-top:4px"></div></div><span class="row" style="gap:14px"><button class="linkbtn" data-go="ajustes">Ajustes</button></span></div>
     <div id="view"></div>
   </main>
 </div>
@@ -359,7 +380,7 @@ const Cloud = {
   show(st){
     this.state = st;
     const t = !this.ok ? 'Salvo neste aparelho' : st === 'saving' ? 'Salvando…' : st === 'err' ? 'Sem conexão · salvo no aparelho' : 'Sincronizado';
-    ['#syncS', '#syncM'].forEach(s => { const el = document.querySelector(s); if(el) el.textContent = t; });
+    ['#syncS', '#syncM', '#syncW', '#syncW2'].forEach(s => { const el = document.querySelector(s); if(el) el.textContent = '· ' + t; });
   }
 };
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
@@ -502,7 +523,7 @@ function pInicio(){
   const doneAll = ds.n >= d.ids.length;
   const recent = Object.keys(S.days).sort().reverse().filter(k => Object.keys(S.days[k].res).length).slice(0,5);
   $('#view').innerHTML = `<div class="page">
-    <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}.</h1></div></div>
+    <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}, ${esc(displayName())}.</h1></div></div>
     <div class="hero">
       <div>
         <div class="eyebrow">30 questões de hoje</div>
@@ -551,7 +572,7 @@ function questionHTML(q, o){
   CURQ = q.id;
   return `${qMeta(q, answered || o.meta)}
     ${q.x ? `<div class="ctx"><div class="ctxi">${esc(q.xi || 'Considere o caso a seguir.')}</div><span data-mk="x">${esc(q.x)}</span></div>` : ''}
-    <div class="stem"><b class="qn">${q.n})</b> <span data-mk="s">${esc(q.s)}</span></div>
+    <div class="stem"><span data-mk="s">${esc(q.s)}</span></div>
     ${q.img.map(src => `<img class="qimg" src="${src}" alt="Figura da questão ${q.n} da prova UERJ ${q.y}">`).join('')}
     ${q.f ? `<div class="xs faint" style="margin:-14px 0 20px">${esc(q.f)}</div>` : ''}
     ${q.s2 ? `<div class="stem" style="margin-top:0"><span data-mk="s2">${esc(q.s2)}</span></div>` : ''}
@@ -588,7 +609,7 @@ function studyRunner(q, ctx){
       <div class="progress">
         <button class="btn ghost" id="backBtn">← ${esc(ctx.back || 'Voltar')}</button>
         ${ctx.progress ? `<div class="bar"><i style="width:${pct(ctx.progress.i, ctx.progress.n)}%"></i></div><div class="num small muted">${ctx.progress.i}/${ctx.progress.n}</div>` : '<div style="flex:1"></div>'}
-        <span class="timer" id="tmr"></span>
+        ${hlBtn()}<span class="timer" id="tmr"></span>
       </div>
       ${questionHTML(q, {chosen, reveal: rev})}
       <div class="actions">
@@ -811,7 +832,7 @@ function pSimRun(){
   const answered = Object.keys(SIM.ch).length;
   SIM.qStart = Date.now();
   $('#view').innerHTML = `<div class="page">
-    <div class="progress"><button class="btn ghost" id="simQuit">Sair</button><div class="bar"><i style="width:${pct(answered, SIM.ids.length)}%"></i></div><div class="num small muted">${SIM.i+1}/${SIM.ids.length}</div><span class="timer" id="tmr"></span></div>
+    <div class="progress"><button class="btn ghost" id="simQuit">Sair</button><div class="bar"><i style="width:${pct(answered, SIM.ids.length)}%"></i></div><div class="num small muted">${SIM.i+1}/${SIM.ids.length}</div>${hlBtn()}<span class="timer" id="tmr"></span></div>
     ${questionHTML(q, {chosen: SIM.ch[q.id], reveal:false})}
     <div class="actions"><div class="xs faint">${answered} de ${SIM.ids.length} marcadas · use as setas para navegar</div>
       <div class="row"><button class="btn ghost" id="sPrev" ${SIM.i?'':'disabled'}>Anterior</button>
@@ -1030,10 +1051,12 @@ function pAjustes(){
     <div class="section"><h3>Backup</h3><div class="row"><button class="btn" id="exp">Exportar progresso (.json)</button><label class="btn" style="display:inline-block">Importar backup<input type="file" id="imp" accept="application/json" hidden></label></div></div>
     <div class="section"><h3>Atalhos de teclado</h3><p class="muted small"><span class="kbd">A</span> <span class="kbd">B</span> <span class="kbd">C</span> <span class="kbd">D</span> escolhem a alternativa · <span class="kbd">Enter</span> responde e avança · <span class="kbd">←</span> <span class="kbd">→</span> navegam.</p></div>
     <div class="section"><h3>Sobre o banco</h3><p class="muted small">${Q.length} questões das provas de acesso direto da Residência Médica UERJ (CEPUERJ) de 2022 a 2026, com texto, alternativas e figuras das provas oficiais e gabarito pós-recurso. ${Q.filter(q=>!valid(q)).length} questões anuladas ficam fora das 30 do dia, dos simulados e das estatísticas. Especialidade, subárea e tema seguem a sua análise das provas. A dificuldade é uma estimativa do mentor, e as explicações foram escritas para estudo, não fazem parte da prova.</p></div>
+    <div class="section"><h3>Instalar como app</h3><p class="muted small" id="pwaTxt">${pwaHelp()}</p>${PWA.prompt ? '<button class="btn" id="pwaBtn">Instalar Banco UERJ</button>' : ''}</div>
     <div class="section"><h3>Marca-texto</h3><p class="muted small">Selecione um trecho do enunciado ou de uma alternativa e toque em <strong>Marcar</strong>. Toque numa marcação para apagá-la. As marcações ficam salvas por questão.</p></div>
     <div class="section"><div class="row"><button class="btn" id="logout2">Sair / trocar usuário</button><button class="btn ghost" id="reset" style="color:var(--bad)">Apagar todo o progresso</button></div></div>
   </div>`;
   $('#logout2').onclick = logout;
+  if($('#pwaBtn')) $('#pwaBtn').onclick = async () => { PWA.prompt.prompt(); await PWA.prompt.userChoice; PWA.prompt = null; pAjustes(); };
   $('#examSave').onclick = () => { S.set.exam = $('#exam').value; save(); toast('Data salva.'); };
   document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.set.theme = b.dataset.th; save(); applyTheme(); pAjustes(); });
   $('#exp').onclick = () => { const blob = new Blob([JSON.stringify(S)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_banco_uerj_'+today()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000); };
@@ -1080,49 +1103,88 @@ function showBar(rect, mode){
   hlbar.style.top = Math.round(top) + 'px';
   hlbar.style.left = Math.round(Math.min(Math.max(8, rect.left + rect.width / 2 - w / 2), innerWidth - w - 8)) + 'px';
 }
-function checkSelection(){
+/* modo marca-texto: com o botão ligado, selecionar já marca e tocar na marcação apaga */
+let HL_MODE = lsGet('uerj_hlmode') === '1';
+const HL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>';
+function hlBtn(){ return `<button class="hlbtn" id="hlToggle" aria-pressed="${HL_MODE}" title="Marca-texto: ligue, selecione o trecho e ele é marcado">${HL_ICON}<span>Marca-texto</span></button>`; }
+function setHlMode(on){
+  HL_MODE = on; lsSet('uerj_hlmode', on ? '1' : '0');
+  document.body.classList.toggle('hlmode', on);
+  const b = $('#hlToggle'); if(b) b.setAttribute('aria-pressed', String(on));
+  hideBar();
+  if(on) toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
+}
+document.addEventListener('click', e => { if(e.target.closest && e.target.closest('#hlToggle')){ e.preventDefault(); setHlMode(!HL_MODE); } });
+function selInfo(){
   const s = window.getSelection();
-  if(!CURQ || !s || s.isCollapsed || !s.rangeCount){ if(hlPending && hlPending.mode === 'add') hideBar(); return; }
+  if(!CURQ || !s || s.isCollapsed || !s.rangeCount) return null;
   const r = s.getRangeAt(0);
   const el = (r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement).closest('[data-mk]');
-  if(!el || !el.closest('#view')){ hideBar(); return; }
+  if(!el || !el.closest('#view')) return null;
   const a = offsetIn(el, r.startContainer, r.startOffset), b = offsetIn(el, r.endContainer, r.endOffset);
-  if(b - a < 1){ hideBar(); return; }
-  hlPending = {mode:'add', key: el.dataset.mk, a, b};
-  showBar(r.getBoundingClientRect(), 'add');
+  if(b - a < 1 || !el.dataset.raw.slice(a, b).trim()) return null;
+  return {key: el.dataset.mk, a, b, rect: r.getBoundingClientRect()};
 }
+function addMark(key, a, b){
+  const m = S.marks[CURQ] = S.marks[CURQ] || {};
+  const list = (m[key] || []).concat([[a, b]]).sort((x, y) => x[0] - y[0]);
+  const merged = [];
+  for(const r of list){ const l = merged[merged.length - 1]; if(l && r[0] <= l[1]) l[1] = Math.max(l[1], r[1]); else merged.push(r.slice()); }
+  m[key] = merged;
+  save(); window.getSelection().removeAllRanges(); hideBar(); paintMarks();
+}
+function delMark(key, a, b){
+  const m = S.marks[CURQ] || {};
+  m[key] = (m[key] || []).filter(r => !(r[0] === a && r[1] === b));
+  if(!m[key].length) delete m[key];
+  if(!Object.keys(m).length) delete S.marks[CURQ];
+  save(); hideBar(); paintMarks();
+}
+function checkSelection(){
+  const i = selInfo();
+  if(!i){ if(hlPending && hlPending.mode === 'add') hideBar(); return; }
+  if(HL_MODE){ addMark(i.key, i.a, i.b); return; }
+  hlPending = {mode:'add', key: i.key, a: i.a, b: i.b};
+  showBar(i.rect, 'add');
+}
+const COARSE = matchMedia('(pointer: coarse)').matches;
 let selT;
-document.addEventListener('selectionchange', () => { clearTimeout(selT); selT = setTimeout(checkSelection, 250); });
+/* mouse: decide ao soltar o botão; toque: espera o ajuste das alças da seleção */
+document.addEventListener('selectionchange', () => { clearTimeout(selT); selT = setTimeout(checkSelection, HL_MODE ? (COARSE ? 900 : 60000) : 250); });
+document.addEventListener('mouseup', () => { if(HL_MODE){ clearTimeout(selT); setTimeout(checkSelection, 10); } });
 document.addEventListener('click', e => {
   const mk = e.target.closest && e.target.closest('mark.hl');
   if(mk && !hasSel()){
     e.stopPropagation(); e.preventDefault();
     const [a, b] = mk.dataset.r.split('-').map(Number);
-    hlPending = {mode:'del', key: mk.closest('[data-mk]').dataset.mk, a, b};
+    const key = mk.closest('[data-mk]').dataset.mk;
+    if(HL_MODE){ delMark(key, a, b); return; }
+    hlPending = {mode:'del', key, a, b};
     showBar(mk.getBoundingClientRect(), 'del');
   } else if(!e.target.closest('#hlbar') && hlPending && hlPending.mode === 'del') hideBar();
 }, true);
 hlbar.addEventListener('mousedown', e => e.preventDefault());
-$('#hlAdd').onclick = () => {
-  if(!hlPending || !CURQ) return;
-  const m = S.marks[CURQ] = S.marks[CURQ] || {};
-  let list = (m[hlPending.key] || []).concat([[hlPending.a, hlPending.b]]).sort((x, y) => x[0] - y[0]);
-  const merged = [];
-  for(const r of list){ const l = merged[merged.length - 1]; if(l && r[0] <= l[1]) l[1] = Math.max(l[1], r[1]); else merged.push(r.slice()); }
-  m[hlPending.key] = merged;
-  save(); window.getSelection().removeAllRanges(); hideBar(); paintMarks();
-};
-$('#hlDel').onclick = () => {
-  if(!hlPending || !CURQ) return;
-  const m = S.marks[CURQ] || {};
-  m[hlPending.key] = (m[hlPending.key] || []).filter(r => !(r[0] === hlPending.a && r[1] === hlPending.b));
-  if(!m[hlPending.key].length) delete m[hlPending.key];
-  if(!Object.keys(m).length) delete S.marks[CURQ];
-  save(); hideBar(); paintMarks();
-};
+$('#hlAdd').onclick = () => { if(hlPending && CURQ) addMark(hlPending.key, hlPending.a, hlPending.b); };
+$('#hlDel').onclick = () => { if(hlPending && CURQ) delMark(hlPending.key, hlPending.a, hlPending.b); };
 window.addEventListener('scroll', () => { if(!hlbar.hidden) hideBar(); }, {passive: true});
 
+/* ---------- PWA (instalar como app) ---------- */
+const PWA = {prompt: null};
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function pwaHelp(){
+  if(isStandalone()) return 'Você já está usando o Banco UERJ como app.';
+  if(location.protocol === 'file:') return 'A instalação funciona no site publicado (GitHub Pages), não no arquivo aberto do computador.';
+  const ua = navigator.userAgent;
+  if(/iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && 'ontouchend' in document)) return 'No iPad ou iPhone (Safari): toque em Compartilhar e depois em "Adicionar à Tela de Início".';
+  if(PWA.prompt) return 'Instale para abrir em tela cheia, com ícone próprio, como um aplicativo.';
+  return 'No Chrome ou Edge: menu ⋮ e depois "Instalar app" (ou "Adicionar à tela inicial" no Android).';
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); PWA.prompt = e; if(route.page === 'ajustes') pAjustes(); });
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW', e));
+
 /* ---------- login e início ---------- */
+function displayName(){ const n = (S.set && S.set.nome) || lsGet('uerj_nome:' + USER) || USER; return n ? n.charAt(0).toUpperCase() + n.slice(1) : ''; }
+function showWho(){ const html = `<span class="who-dot"></span>${esc(displayName())} <span class="faint" id="syncW">${esc(document.querySelector('#syncS') ? document.querySelector('#syncS').textContent : '')}</span>`; ['#whoS', '#whoM'].forEach(k => { const el = document.querySelector(k); if(el) el.innerHTML = html.replace('id="syncW"', k === '#whoM' ? 'id="syncW2"' : 'id="syncW"'); }); }
 function normUser(s){ return String(s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
 async function enter(name){
   USER = name; SKEY = SKEY_BASE + ':' + USER; lsSet('uerj_user', USER);
@@ -1137,8 +1199,9 @@ async function enter(name){
     try{ const R = await withTimeout(Cloud.pull(), 8000); if(R) S = merge(S, R); Cloud.show('ok'); }
     catch(e){ console.warn(e); Cloud.show('err'); }
   } else Cloud.show('local');
+  const nm = lsGet('uerj_nome:' + USER); if(nm && !S.set.nome){ S.set.nome = nm; }
   saveLocal(); if(Cloud.ok) Cloud.flush();
-  applyTheme();
+  applyTheme(); document.body.classList.toggle('hlmode', HL_MODE); showWho(); Cloud.show(Cloud.state);
   const p = new URLSearchParams(location.search);
   if(p.get('p')) route = {page: p.get('p'), tab: p.get('tab') || undefined, k: p.get('k') != null ? +p.get('k') : undefined};
   render();
@@ -1154,6 +1217,8 @@ $('#loginForm').onsubmit = e => {
   const u = normUser($('#loginUser').value);
   if(!u){ toast('Digite um nome de usuário.'); return; }
   lsSet('uerj_last_user', u);
+  const nome = $('#loginUser').value.trim().split(/\s+/)[0];
+  if(nome) lsSet('uerj_nome:' + u, nome);
   enter(u);
 };
 async function logout(){ await Cloud.flush(); try{ localStorage.removeItem('uerj_user'); }catch(e){} location.href = location.pathname; }
