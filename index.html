@@ -212,6 +212,11 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
+body.erasemode #view [data-mk], body.erasemode #view .stem, body.erasemode #view .ctx, body.erasemode #view .alt, body.erasemode #view .rv-body, body.erasemode #view .fb{cursor:cell}
+.er-ring{position:fixed;z-index:80;border-radius:50%;border:1.5px solid var(--ink-2);background:color-mix(in srgb, var(--surface) 40%, transparent);pointer-events:none}
+.tbx .tb[data-tool="eraser"][aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+
 .cai-folds details.nb-group:first-of-type{border-top:1px solid var(--line)}
 @media (max-width: 600px){ .cai-years{display:none} }
 @keyframes tbInT{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
@@ -302,9 +307,9 @@ body.txtmode #view .tn{cursor:pointer}
 .tn-act .tn-del{margin-right:auto}
 .tn-act .tn-del:hover{color:var(--bad)}
 .ink-ov{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
-.ink-ov path{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
-.ink-ov path[stroke="currentColor"]{color:var(--ink)}
-body.penmode #view .ink-ov path{pointer-events:stroke;cursor:pointer}
+.ink-ov path{stroke:none;opacity:.92}
+.ink-ov{color:var(--ink)}
+
 body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .rv-body, body.penmode #view .fb{cursor:crosshair;user-select:none;-webkit-user-select:none;touch-action:none}
 .rv-mk{display:block;position:relative}
 
@@ -1899,20 +1904,6 @@ function paintEl(el, ranges, notes){
   el._hl = true;
 }
 function inkAnchor(el){ return getComputedStyle(el).display === 'inline' ? el.parentElement : el; }
-const PEN_HEX = {r: '#D64545', b: '#2F6FD6', g: '#2E9A5B', k: 'currentColor'};
-function strokeD(p, s){ let d = ''; for(let i = 0; i < p.length; i += 2) d += (i ? ' L' : 'M') + (p[i] * s).toFixed(1) + ' ' + (p[i + 1] * s).toFixed(1); return d; }
-function paintInk(){
-  document.querySelectorAll('#view .ink-ov').forEach(x => x.remove());
-  document.querySelectorAll('#view [data-mk]').forEach(el => {
-    const sc = markScope(el); if(!sc) return;
-    const list = ((S.ink || {})[sc] || {})[el.dataset.mk]; if(!list || !list.length) return;
-    const an = inkAnchor(el); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
-    const W = an.getBoundingClientRect().width || 1;
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov'); svg.dataset.sc = sc; svg.dataset.k = el.dataset.mk;
-    svg.innerHTML = list.map((st, i) => `<path data-i="${i}" d="${strokeD(st.p, W / (st.w || W))}" stroke="${PEN_HEX[st.c] || PEN_HEX.r}"/>`).join('');
-    an.appendChild(svg);
-  });
-}
 function paintMarks(){
   document.querySelectorAll('#view [data-mk]').forEach(el => { const sc = markScope(el); if(!sc) return; const k = el.dataset.mk; paintEl(el, (S.marks[sc] || {})[k], ((S.tnotes || {})[sc] || {})[k]); });
   paintInk();
@@ -1927,6 +1918,7 @@ let HL_COLOR = +(lsGet('uerj_hlcolor') || 0) || 0;
 let PEN_COLOR = lsGet('uerj_pencolor') || 'r';
 const HL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>';
 const TXT_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4.5h14V6"/><path d="M12 4.5v15"/><path d="M9 19.5h6"/></svg>';
+const ERASER_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 21-4.3-4.3a1.5 1.5 0 0 1 0-2.1l10-10a1.5 1.5 0 0 1 2.1 0l5.6 5.6a1.5 1.5 0 0 1 0 2.1L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>';
 const PEN_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
 function colsHTML(){
   if(TOOL === 'hl') return HL_COLS.map(([n, c]) => `<button type="button" class="tb-dot hdot h${c}" data-hc="${c}" aria-pressed="${HL_COLOR === c}" title="${n}" aria-label="Cor ${n}"></button>`).join('');
@@ -1937,14 +1929,16 @@ function hlBtn(){
   return `<div class="tbx" role="toolbar" aria-label="Ferramentas de marcação">
     <button type="button" class="tb hlbtn" data-tool="hl" aria-pressed="${TOOL === 'hl'}" title="Marca-texto: selecione o trecho e ele é marcado; toque na marcação para apagar">${HL_ICON}<span>Marca-texto</span></button>
     <button type="button" class="tb" data-tool="txt" aria-pressed="${TOOL === 'txt'}" title="Texto: toque num ponto do texto para escrever uma observação ali">${TXT_ICON}</button>
-    <button type="button" class="tb" data-tool="pen" aria-pressed="${TOOL === 'pen'}" title="Caneta: desenhe para circular; toque num traço para apagar">${PEN_ICON}</button>
+    <button type="button" class="tb" data-tool="pen" aria-pressed="${TOOL === 'pen'}" title="Caneta: desenhe para circular; toque perto de um traço para apagar">${PEN_ICON}</button>
+    <button type="button" class="tb" data-tool="eraser" aria-pressed="${TOOL === 'eraser'}" title="Borracha: passe por cima dos traços para apagar">${ERASER_ICON}</button>
     <span class="tb-cols">${colsHTML()}</span>
   </div>`;
 }
 function syncTools(){
   document.body.classList.toggle('hlmode', TOOL === 'hl');
   document.body.classList.toggle('txtmode', TOOL === 'txt');
-  document.body.classList.toggle('penmode', TOOL === 'pen');
+  document.body.classList.toggle('penmode', TOOL === 'pen' || TOOL === 'eraser');
+  document.body.classList.toggle('erasemode', TOOL === 'eraser');
   document.querySelectorAll('.tbx').forEach(x => { x.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === TOOL))); x.querySelector('.tb-cols').innerHTML = colsHTML(); });
 }
 function setTool(t, quiet){
@@ -1953,7 +1947,8 @@ function setTool(t, quiet){
   if(quiet) return;
   if(t === 'hl') toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
   if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
-  if(t === 'pen') toast('Caneta: desenhe para circular. Toque num traço para apagar. Desligue para rolar a página no celular.');
+  if(t === 'pen') toast(STYLUS ? 'Caneta: escreva com a caneta; o dedo e a palma não riscam (o dedo rola a página). Toque perto de um traço para apagar.' : 'Caneta: desenhe para circular. Toque perto de um traço para apagar.');
+  if(t === 'eraser') toast('Borracha: passe por cima dos traços que quer apagar.');
 }
 function setHlMode(on){ setTool(on ? 'hl' : ''); }
 document.addEventListener('click', e => {
@@ -2009,7 +2004,7 @@ function delMark(sc, key, a, b){
   save(); hideBar(); paintMarks();
 }
 function checkSelection(){
-  if(TOOL === 'txt' || TOOL === 'pen') return;
+  if(TOOL === 'txt' || TOOL === 'pen' || TOOL === 'eraser') return;
   const i = selInfo();
   if(!i){ if(hlPending && hlPending.mode === 'add') hideBar(); return; }
   if(HL_MODE){ addMark(i.sc, i.key, i.a, i.b); return; }
@@ -2072,7 +2067,7 @@ function tnOffset(host, ca){
 document.addEventListener('click', e => {
   if(!e.target.closest) return;
   const chip = e.target.closest('#view .tn');
-  if(chip && TOOL !== 'pen'){
+  if(chip && TOOL !== 'pen' && TOOL !== 'eraser'){
     if(chip.classList.contains('editing')) return;
     e.stopPropagation(); e.preventDefault();
     const host = chip.closest('[data-mk]'); editTn(markScope(host), host.dataset.mk, chip.dataset.tn); return;
@@ -2087,7 +2082,7 @@ document.addEventListener('click', e => {
     paintMarks(); editTn(sc, k, id);
     return;
   }
-  if(TOOL === 'pen' && e.target.closest('#view [data-mk], #view .ink-ov')){ e.stopPropagation(); e.preventDefault(); return; }
+  if((TOOL === 'pen' || TOOL === 'eraser') && e.target.closest('#view [data-mk], #view .ink-ov, #view .stem, #view .ctx, #view .alt, #view .rv-body, #view .fb')){ e.stopPropagation(); e.preventDefault(); return; }
   const mk = e.target.closest('mark.hl');
   if(mk && !hasSel()){
     e.stopPropagation(); e.preventDefault();
@@ -2104,47 +2099,162 @@ $('#hlAdd').onclick = () => { if(hlPending) addMark(hlPending.sc, hlPending.key,
 $('#hlDel').onclick = () => { if(hlPending) delMark(hlPending.sc, hlPending.key, hlPending.a, hlPending.b); };
 window.addEventListener('scroll', () => { if(!hlbar.hidden) hideBar(); }, {passive: true});
 
-/* caneta: traços presos ao bloco de texto onde começaram */
-let pen = null;
+/* caneta: traço suave com espessura variável (pressão da caneta ou velocidade), rejeição da palma e borracha */
+const PEN_SIZE = 3.4;
+let STYLUS = lsGet('uerj_stylus') === '1'; /* já usou caneta stylus neste aparelho: dedo/palma não desenham, só rolam */
+function markStylus(){ if(!STYLUS){ STYLUS = true; lsSet('uerj_stylus', '1'); } document.body.classList.add('stylus'); }
+if(STYLUS) document.body.classList.add('stylus');
+/* contorno preenchido do traço (pontas arredondadas e afinadas), com curvas suaves entre os pontos */
+function strokePath(st, s){
+  const P = [], p = st.p, pr = st.pr;
+  for(let i = 0; i < p.length; i += 2) P.push([p[i] * s, p[i + 1] * s, pr ? pr[i / 2] / 100 : .5]);
+  const size = PEN_SIZE * s, n = P.length;
+  if(!n) return '';
+  if(n === 1){ const [x, y] = P[0], r = size * .55; return `M${x - r},${y}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0Z`; }
+  /* suavização leve da linha central (média móvel) */
+  const C = P.map((q, i) => { if(i === 0 || i === n - 1) return q; const a = P[i - 1], b = P[i + 1]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4, q[2]]; });
+  const L = [], R = [];
+  let len = 0; const cum = [0]; for(let i = 1; i < n; i++){ len += Math.hypot(C[i][0] - C[i - 1][0], C[i][1] - C[i - 1][1]); cum.push(len); }
+  const tap = Math.min(len / 3, size * 2.2);
+  for(let i = 0; i < n; i++){
+    const a = C[Math.max(0, i - 1)], b = C[Math.min(n - 1, i + 1)];
+    let dx = b[0] - a[0], dy = b[1] - a[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+    const ta = tap ? Math.min(1, .35 + .65 * Math.min(cum[i], len - cum[i]) / tap) : 1;
+    const r = size / 2 * (.45 + 1.1 * C[i][2]) * ta;
+    L.push([C[i][0] - dy * r, C[i][1] + dx * r]); R.push([C[i][0] + dy * r, C[i][1] - dx * r]);
+  }
+  const cap = (c, from, to, out) => { const ang0 = Math.atan2(from[1] - c[1], from[0] - c[0]), rr = Math.hypot(from[0] - c[0], from[1] - c[1]); for(let k = 1; k < 6; k++){ const t = ang0 - Math.PI * k / 6; out.push([c[0] + Math.cos(t) * rr, c[1] + Math.sin(t) * rr]); } };
+  const end = [], start = [];
+  cap(C[n - 1], L[n - 1], R[n - 1], end); cap(C[0], R[0], L[0], start);
+  const poly = [...L, ...end, ...R.reverse(), ...start];
+  let dd = `M${poly[0][0].toFixed(1)},${poly[0][1].toFixed(1)} Q`;
+  for(let i = 0; i < poly.length; i++){ const [x0, y0] = poly[i], [x1, y1] = poly[(i + 1) % poly.length]; dd += `${x0.toFixed(1)},${y0.toFixed(1)} ${((x0 + x1) / 2).toFixed(1)},${((y0 + y1) / 2).toFixed(1)} `; }
+  return dd + 'Z';
+}
+const PEN_HEX = {r: '#D64545', b: '#2F6FD6', g: '#2E9A5B', k: 'currentColor'};
+function paintInk(){
+  document.querySelectorAll('#view .ink-ov').forEach(x => x.remove());
+  document.querySelectorAll('#view [data-mk]').forEach(el => {
+    const sc = markScope(el); if(!sc) return;
+    const list = ((S.ink || {})[sc] || {})[el.dataset.mk]; if(!list || !list.length) return;
+    const an = inkAnchor(el); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
+    const W = an.getBoundingClientRect().width || 1;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov'); svg.dataset.sc = sc; svg.dataset.k = el.dataset.mk;
+    svg.innerHTML = list.map((st, i) => `<path data-i="${i}" d="${strokePath(st, W / (st.w || W))}" fill="${PEN_HEX[st.c] || PEN_HEX.r}"/>`).join('');
+    an.appendChild(svg);
+  });
+}
+/* quais traços estão perto de um ponto da tela (tolerância generosa no toque) */
+function segDist(px, py, ax, ay, bx, by){ const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - ax - t * dx, py - ay - t * dy); }
+function inkHits(x, y, tol){
+  const out = [];
+  document.querySelectorAll('#view .ink-ov').forEach(svg => {
+    const sc = svg.dataset.sc, k = svg.dataset.k, list = ((S.ink || {})[sc] || {})[k]; if(!list) return;
+    const R = svg.parentElement.getBoundingClientRect(), W = R.width || 1;
+    list.forEach((st, i) => {
+      const s = W / (st.w || W), px = (x - R.left) / s, py = (y - R.top) / s, t = tol / s + PEN_SIZE, p = st.p;
+      for(let j = 0; j < p.length; j += 2){ const ax = p[j], ay = p[j + 1], bx = j + 2 < p.length ? p[j + 2] : ax, by = j + 2 < p.length ? p[j + 3] : ay; if(segDist(px, py, ax, ay, bx, by) <= t){ out.push({sc, k, i}); break; } }
+    });
+  });
+  return out;
+}
+function delStrokes(hits){
+  if(!hits.length) return false;
+  const by = {}; hits.forEach(h => { (by[h.sc + '\u0001' + h.k] = by[h.sc + '\u0001' + h.k] || {sc: h.sc, k: h.k, ix: new Set()}).ix.add(h.i); });
+  for(const g of Object.values(by)){
+    const a = S.ink[g.sc]; a[g.k] = a[g.k].filter((_, i) => !g.ix.has(i));
+    if(!a[g.k].length) delete a[g.k]; if(!Object.keys(a).length) delete S.ink[g.sc];
+  }
+  save(); paintInk(); return true;
+}
+const ER_RING = document.createElement('div'); ER_RING.className = 'er-ring'; ER_RING.hidden = true; document.body.appendChild(ER_RING);
+let pen = null, fscroll = null;
+const penTol = e => e.pointerType === 'touch' ? 24 : e.pointerType === 'pen' ? 12 : 9;
+function penTarget(e){
+  if(!e.target.closest || !e.target.closest('#view') || e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap,a')) return null;
+  let host = e.target.closest('[data-mk]');
+  if(!host){ const inner = e.target.querySelector && e.target.querySelector(':scope > [data-mk]'); if(inner) host = inner; }
+  if(!host){ const ov = e.target.closest('.ink-ov'); if(ov) host = ov.parentElement.querySelector('[data-mk]') || ov.parentElement.closest('[data-mk]'); }
+  return host;
+}
+/* rejeição da palma: com stylus detectada, só a stylus desenha; toques largos (palma) nunca desenham; um traço por vez */
+function palmReject(e){
+  if(e.pointerType === 'pen'){ markStylus(); return false; }
+  if(e.pointerType === 'touch'){
+    if(STYLUS) return true;
+    if((e.width || 0) > 38 || (e.height || 0) > 38) return true;
+  }
+  return false;
+}
 document.addEventListener('pointerdown', e => {
-  if(TOOL !== 'pen' || !e.target.closest || e.button > 0) return;
-  if(!e.target.closest('#view') || e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap')) return;
-  const path = e.target.closest('.ink-ov path');
-  let host = path ? null : e.target.closest('[data-mk]');
-  if(!host && !path){ const inner = e.target.querySelector && e.target.querySelector(':scope > [data-mk]'); if(inner) host = inner; }
-  if(!host && !path) return;
+  if((TOOL !== 'pen' && TOOL !== 'eraser') || e.button > 0) return;
+  if(pen){ return; }
+  const host = penTarget(e); if(!host) return;
+  if(palmReject(e)){
+    /* dedo com caneta stylus em uso: rola a página manualmente (a área de escrita não rola sozinha) */
+    if(e.pointerType === 'touch' && STYLUS && !((e.width || 0) > 38 || (e.height || 0) > 38)) fscroll = {pid: e.pointerId, y: e.clientY};
+    return;
+  }
   e.preventDefault();
-  if(path){ pen = {del: path, x: e.clientX, y: e.clientY}; return; }
+  if(TOOL === 'eraser'){
+    pen = {erase: true, pid: e.pointerId, tol: penTol(e)};
+    showRing(e, pen.tol); delStrokes(inkHits(e.clientX, e.clientY, pen.tol));
+    return;
+  }
   const sc = markScope(host); if(!sc) return;
   const an = inkAnchor(host); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
   const R = an.getBoundingClientRect();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov ink-live');
-  const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path'); pa.setAttribute('stroke', PEN_HEX[PEN_COLOR]); svg.appendChild(pa); an.appendChild(svg);
-  pen = {sc, k: host.dataset.mk, an, R, svg, pa, p: [Math.round(e.clientX - R.left), Math.round(e.clientY - R.top)]};
-}, true);
+  const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path'); pa.setAttribute('fill', PEN_HEX[PEN_COLOR]); svg.appendChild(pa); an.appendChild(svg);
+  const x = e.clientX - R.left, y = e.clientY - R.top;
+  pen = {pid: e.pointerId, type: e.pointerType, sc, k: host.dataset.mk, an, R, svg, pa, p: [x, y], pr: [], sx: e.clientX, sy: e.clientY, moved: 0, lx: x, ly: y, lt: e.timeStamp, lp: .5, tol: penTol(e)};
+  pen.pr.push(Math.round(penPressure(e, 0) * 100));
+}, {capture: true, passive: false});
+function penPressure(e, speed){
+  if(e.pointerType === 'pen' && e.pressure > 0) return Math.max(.08, Math.min(1, e.pressure));
+  const target = .78 - Math.min(.5, speed * .28); /* mais rápido = mais fino, como uma caneta real */
+  pen.lp = pen.lp + (target - pen.lp) * .35; return pen.lp;
+}
+function showRing(e, tol){ ER_RING.hidden = false; ER_RING.style.width = ER_RING.style.height = tol * 2 + 'px'; ER_RING.style.left = e.clientX - tol + 'px'; ER_RING.style.top = e.clientY - tol + 'px'; }
 document.addEventListener('pointermove', e => {
-  if(!pen || pen.del) return;
+  if(fscroll && e.pointerId === fscroll.pid){ window.scrollBy(0, fscroll.y - e.clientY); fscroll.y = e.clientY; return; }
+  if(!pen || e.pointerId !== pen.pid) return;
   e.preventDefault();
-  const x = Math.round(e.clientX - pen.R.left), y = Math.round(e.clientY - pen.R.top), n = pen.p.length;
-  if(Math.abs(x - pen.p[n - 2]) + Math.abs(y - pen.p[n - 1]) < 2) return;
-  pen.p.push(x, y); pen.pa.setAttribute('d', strokeD(pen.p, 1));
+  if(pen.erase){ showRing(e, pen.tol); delStrokes(inkHits(e.clientX, e.clientY, pen.tol)); return; }
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for(const ev of (evs.length ? evs : [e])){
+    const rx = ev.clientX - pen.R.left, ry = ev.clientY - pen.R.top;
+    /* estabilização: o traço segue o dedo/caneta com leve atraso, eliminando tremidos */
+    const x = pen.lx + (rx - pen.lx) * .55, y = pen.ly + (ry - pen.ly) * .55;
+    const dist = Math.hypot(x - pen.lx, y - pen.ly); if(dist < 1.2) continue;
+    const dt = Math.max(1, ev.timeStamp - pen.lt);
+    pen.moved += dist; pen.lx = x; pen.ly = y; pen.lt = ev.timeStamp;
+    pen.p.push(x, y); pen.pr.push(Math.round(penPressure(ev, dist / dt) * 100));
+  }
+  pen.pa.setAttribute('d', strokePath({p: pen.p, pr: pen.pr}, 1));
 }, {passive: false});
-document.addEventListener('pointerup', e => {
-  if(!pen) return;
-  const P = pen; pen = null;
-  if(P.del){
-    if(Math.abs(e.clientX - P.x) + Math.abs(e.clientY - P.y) < 8){
-      const svg = P.del.closest('svg'), sc = svg.dataset.sc, k = svg.dataset.k, list = ((S.ink || {})[sc] || {})[k];
-      if(list){ list.splice(+P.del.dataset.i, 1); if(!list.length) delete S.ink[sc][k]; if(!Object.keys(S.ink[sc]).length) delete S.ink[sc]; save(); paintInk(); }
-    }
+function endPen(e, cancel){
+  if(fscroll && e && e.pointerId === fscroll.pid){ fscroll = null; return; }
+  if(!pen || (e && e.pointerId !== pen.pid)) return;
+  const P = pen; pen = null; ER_RING.hidden = true;
+  if(P.erase) return;
+  P.svg.remove();
+  const tapMove = Math.abs(e.clientX - P.sx) + Math.abs(e.clientY - P.sy);
+  if(cancel) return;
+  if(tapMove < 7 && P.moved < 7){ /* toque rápido perto de um traço apaga (sem precisar acertar a linha fina) */
+    const hits = inkHits(P.sx, P.sy, P.tol); if(hits.length) delStrokes([hits[hits.length - 1]]);
     return;
   }
-  P.svg.remove();
-  if(P.p.length < 6) return;
+  const rx = e.clientX - P.R.left, ry = e.clientY - P.R.top; P.p.push(rx, ry); P.pr.push(P.pr[P.pr.length - 1] || 50);
   S.ink = S.ink || {}; const a = S.ink[P.sc] = S.ink[P.sc] || {};
-  (a[P.k] = a[P.k] || []).push({c: PEN_COLOR, w: Math.round(P.R.width), p: P.p});
+  (a[P.k] = a[P.k] || []).push({c: PEN_COLOR, w: Math.round(P.R.width), p: P.p.map(v => Math.round(v * 10) / 10), pr: P.pr});
   save(); paintInk();
-});
+}
+document.addEventListener('pointerup', e => endPen(e, false));
+document.addEventListener('pointercancel', e => endPen(e, true));
+/* iPad/celular com caneta: impedir que a stylus role a página enquanto escreve (dedos continuam rolando) */
+document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser') && [...e.touches].some(t => t.touchType === 'stylus') && e.target.closest && e.target.closest('#view')){ markStylus(); e.preventDefault(); } }, {passive: false});
+document.addEventListener('touchmove', e => { if(pen) e.preventDefault(); }, {passive: false});
 
 /* barra flutuante: quando as ferramentas do topo saem da tela, uma versão compacta fica no canto */
 const tbFloat = document.createElement('div'); tbFloat.className = 'tb-float'; tbFloat.hidden = true; document.body.appendChild(tbFloat);
