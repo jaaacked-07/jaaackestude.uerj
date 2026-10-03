@@ -211,6 +211,8 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button:hover{background:rgba(255,255,255,.12)}
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
+body.tmp-erase .er-ring{border-color:var(--bad);background:color-mix(in srgb, var(--bad) 10%, transparent)}
+body.tmp-erase #view *{cursor:cell!important}
 
 /* v17: cronograma */
 .cr-home{display:flex;flex-direction:column;gap:6px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
@@ -2636,7 +2638,7 @@ function inkHost(t){
 let G = null;
 function resetGesture(){
   if(G){ clearTimeout(G.lp); if(G.svg) G.svg.remove(); if(G.kind === 'hl' && G.host) paintMarks(); }
-  G = null; ER_RING.hidden = true;
+  G = null; ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
 }
 window.addEventListener('blur', resetGesture);
 document.addEventListener('visibilitychange', () => { if(document.hidden) resetGesture(); });
@@ -2678,12 +2680,19 @@ document.addEventListener('pointerdown', e => {
        z: isPen ? PEN_SIZE : 3.2, sm: !isPen, follow: isPen ? .92 : .7};
   G.pr.push(Math.round(penPressure(e, 0) * 100));
   draw();
-  /* segurar parado sobre um traço por meio segundo = apagar esse traço */
+  /* segurar parado por meio segundo = vira borracha temporária: apaga o traço mais perto e, arrastando sem soltar,
+     apaga tudo por onde passar. Ao soltar, volta a ser caneta (a ferramenta do menu não muda). */
   G.lp = setTimeout(() => {
     if(!G || G.kind !== 'pen' || G.moved > 6) return;
-    const hits = inkHits(G.x0, G.y0, G.tol);
-    if(hits.length){ const g = G; G = null; g.svg.remove(); delStrokes([hits[hits.length - 1]]); if(navigator.vibrate) try{ navigator.vibrate(12); }catch(_){} toast('Traço apagado.'); }
-  }, 520);
+    const g = G; g.svg.remove();
+    const near = g.type === 'touch' ? 30 : 22;
+    G = {kind: 'erase', temp: true, pid: g.pid, t: g.t, tol: near};
+    document.body.classList.add('tmp-erase');
+    showRing(g.x0, g.y0, near);
+    const hits = inkHits(g.x0, g.y0, near);
+    if(hits.length) delStrokes([hits[hits.length - 1]]);
+    if(navigator.vibrate) try{ navigator.vibrate(12); }catch(_){}
+  }, 500);
 }, {capture: true, passive: false});
 function penPressure(e, speed){
   if(e.pointerType === 'pen' && e.pressure > 0) return Math.max(.1, Math.min(1, e.pressure));
@@ -2713,7 +2722,7 @@ document.addEventListener('pointermove', e => {
 }, {passive: false});
 function endGesture(e, cancel){
   if(!G || e.pointerId !== G.pid) return;
-  const g = G; G = null; clearTimeout(g.lp); ER_RING.hidden = true;
+  const g = G; G = null; clearTimeout(g.lp); ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
   if(g.kind === 'finger'){ if(!cancel && g.moved < 8){ const hits = inkHits(g.x0, g.y0, 26); if(hits.length){ delStrokes([hits[hits.length - 1]]); SUPPRESS_CLICK = true; } } return; }
   if(g.kind === 'hl'){ endHl(g, cancel); return; }
   if(g.kind === 'erase') return;
