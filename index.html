@@ -2250,26 +2250,28 @@ function crBind(){
   if(!crBind._scrolled){ crBind._scrolled = true; const t = document.getElementById('day-' + today()); if(t) setTimeout(() => t.scrollIntoView({block: 'start', behavior: 'smooth'}), 120); }
 }
 
-/* Início: questões feitas dos temas do cronograma (desde 03/10), no total e por matéria (recolhido) */
+/* Início: questões dos temas do cronograma — número grande só de HOJE (zera a cada dia);
+   abaixo, % de acertos por área desde o início do cronograma (recolhido) */
 const CR_START = '2026-10-03';
 function crStatsHTML(){
   const C = S.crono && S.crono.days ? S.crono : crBuild();
-  const owner = new Map();   /* questão → bloco do cronograma (o primeiro, em ordem de data) */
-  for(const d of Object.keys(C.days).sort()) for(const b of C.days[d]){ if(b.ty === 'pausa' || b.ty === 'correcao' || b.ty === 'simulado') continue; for(const q of crQs(b)) if(!owner.has(q)) owner.set(q, b.ti); }
-  const by = new Map(); let n = 0, ok = 0;
-  for(const [q, ti] of owner){
+  const own = new Set();
+  for(const d of Object.keys(C.days)) for(const b of C.days[d]){ if(b.ty === 'pausa' || b.ty === 'correcao' || b.ty === 'simulado') continue; for(const q of crQs(b)) own.add(q); }
+  const td = today(); let n = 0, ok = 0; const byA = new Map();
+  for(const q of own){
     const a = (S.ans[q] || []).filter(x => x.cr || (x.d >= CR_START && x.mode !== 'simulado'));
     if(!a.length) continue;
-    const l = a[a.length - 1]; n++; if(l.ok) ok++;
-    const key = l.cr || ti, g = by.get(key) || {n: 0, ok: 0}; g.n++; if(l.ok) g.ok++; by.set(key, g);
+    const l = a[a.length - 1];
+    const g = byA.get(QI[q].a) || {n: 0, ok: 0}; g.n++; if(l.ok) g.ok++; byA.set(QI[q].a, g);
+    const h = a.filter(x => x.d === td); if(h.length){ n++; if(h[h.length - 1].ok) ok++; }
   }
-  const rows = [...by.entries()].sort((x, y) => y[1].n - x[1].n);
+  const rows = [...byA.entries()].sort((x, y) => x[0] - y[0]);
   return `<div class="hero hero2"><div>
-      <div class="eyebrow">Questões do cronograma</div>
-      ${n ? `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas</div></div><div class="hero-ok num">${n}<span> ${n === 1 ? 'feita' : 'feitas'} no total</span></div></div>
-      <p class="muted small" style="margin:12px 0 0">${pct(ok, n)}% de acerto nas questões feitas</p>
-      <details class="nb-group cr-stats"><summary><span class="nb-gt">Por matéria</span><span class="faint small num">${rows.length}</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(k, g.ok, g.n)).join('')}</div></details>`
-      : `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">0</div><div class="xs faint">questões feitas</div></div></div><p class="muted small" style="margin:12px 0 0">As questões dos temas do cronograma aparecem aqui conforme você faz.</p>`}
+      <div class="eyebrow">Questões do cronograma · hoje</div>
+      ${n ? `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas hoje</div></div></div>
+      <p class="muted small" style="margin:12px 0 0">${pct(ok, n)}% de acerto hoje</p>`
+      : `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">0</div><div class="xs faint">questões feitas hoje</div></div></div><p class="muted small" style="margin:12px 0 0">Conta só o que você fizer hoje dos temas do cronograma. Amanhã começa do zero.</p>`}
+      ${rows.length ? `<details class="nb-group cr-stats"><summary><span class="nb-gt">% de acertos por área</span><span class="faint small">desde 03/10</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(A.areas[k].label, g.ok, g.n)).join('')}</div></details>` : ''}
     </div><div class="row" style="justify-content:flex-start"><button class="btn" data-go="crono">Abrir cronograma</button></div></div>`;
 }
 
