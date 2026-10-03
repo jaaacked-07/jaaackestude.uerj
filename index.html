@@ -2558,7 +2558,7 @@ if(STYLUS) document.body.classList.add('stylus');
 /* contorno preenchido do traço (pontas arredondadas e afinadas), com curvas suaves entre os pontos */
 function strokePath(st, s){
   const P = [], p = st.p, pr = st.pr;
-  for(let i = 0; i < p.length; i += 2) P.push([p[i] * s, p[i + 1] * s, pr ? pr[i / 2] / 100 : .5]);
+  for(let i = 0; i < p.length; i += 2) P.push([p[i] * s, p[i + 1] * s, pr ? Math.max(.05, Math.min(1, (pr[i / 2] || 50) / 100)) : .5]);
   const size = (st.z || 3.4) * s, n = P.length;
   if(!n) return '';
   let len = 0; const cum = [0]; for(let i = 1; i < n; i++){ len += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); cum.push(len); }
@@ -2637,7 +2637,7 @@ function inkHost(t){
 /* estado do gesto em andamento (um por vez). Tudo é reiniciado com segurança se algo se perder. */
 let G = null;
 function resetGesture(){
-  if(G){ clearTimeout(G.lp); if(G.svg) G.svg.remove(); if(G.kind === 'hl' && G.host) paintMarks(); }
+  if(G){ clearTimeout(G.lpT); if(G.svg) G.svg.remove(); if(G.kind === 'hl' && G.host) paintMarks(); }
   G = null; ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
 }
 window.addEventListener('blur', resetGesture);
@@ -2682,7 +2682,7 @@ document.addEventListener('pointerdown', e => {
   draw();
   /* segurar parado por meio segundo = vira borracha temporária: apaga o traço mais perto e, arrastando sem soltar,
      apaga tudo por onde passar. Ao soltar, volta a ser caneta (a ferramenta do menu não muda). */
-  G.lp = setTimeout(() => {
+  G.lpT = setTimeout(() => {
     if(!G || G.kind !== 'pen' || G.moved > 6) return;
     const g = G; g.svg.remove();
     const near = g.type === 'touch' ? 30 : 22;
@@ -2715,14 +2715,14 @@ document.addEventListener('pointermove', e => {
     const dist = Math.hypot(x - G.lx, y - G.ly); if(dist < .35) continue;
     const dt = Math.max(1, ev.timeStamp - G.lt);
     G.moved += dist; G.lx = x; G.ly = y; G.lt = ev.timeStamp;
-    G.p.push(x, y); G.pr.push(Math.round(penPressure(ev, dist / dt) * 100));
+    G.p.push(x, y); G.pr.push(Math.max(5, Math.min(100, Math.round(penPressure(ev, dist / dt) * 100))));
   }
-  if(G.moved > 6) clearTimeout(G.lp);
+  if(G.moved > 6) clearTimeout(G.lpT);
   draw();
 }, {passive: false});
 function endGesture(e, cancel){
   if(!G || e.pointerId !== G.pid) return;
-  const g = G; G = null; clearTimeout(g.lp); ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
+  const g = G; G = null; clearTimeout(g.lpT); ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
   if(g.kind === 'finger'){ if(!cancel && g.moved < 8){ const hits = inkHits(g.x0, g.y0, 26); if(hits.length){ delStrokes([hits[hits.length - 1]]); SUPPRESS_CLICK = true; } } return; }
   if(g.kind === 'hl'){ endHl(g, cancel); return; }
   if(g.kind === 'erase') return;
