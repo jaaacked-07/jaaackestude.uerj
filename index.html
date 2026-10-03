@@ -244,7 +244,8 @@ details.cr-day.alldone{background:linear-gradient(90deg, var(--ok-soft), transpa
 .tm-i:hover{background:var(--sunk)}
 .tm-i span:nth-child(2){flex:1}
 .hero2{margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
-.cr-stats{margin-top:14px;border-top:1px solid var(--line)!important}
+.cr-sep{height:0;border-top:1px dashed var(--line-2);margin:22px 0 4px}
+.cr-stats{margin-top:0;border-top:0!important}
 .cr-stats > summary{font-size:14px!important;padding:12px 2px!important}
 .nb-group > summary .icon-btn{margin-left:2px}
 
@@ -254,6 +255,9 @@ body.tmp-erase #view *{cursor:cell!important}
 /* v17: cronograma */
 .cr-home{display:flex;flex-direction:column;gap:6px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
 .cr-home .linkbtn{text-align:left;font-size:15px;color:var(--ink)}
+.cr-home-row{display:flex;align-items:center;gap:10px}
+.cr-home-done .linkbtn{color:var(--ok);font-weight:500}
+.cr-okic{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:6px;background:var(--ok);color:#fff;font-size:11px;margin-right:4px}
 .cr-week .nb-gbody{padding-top:4px}
 .cr-wtip{font-size:13px;color:var(--ink-2);margin:2px 0 18px;line-height:1.55}
 .cr-wtip span{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-right:8px}
@@ -1195,7 +1199,7 @@ function dayCard(q, r, j){ return qCard(q, r ? (r.ok ? 'ok' : 'bad') : 'no', {to
 function qRow(q, st){ return qCard(q, st, {r: st !== 'no' ? lastAns(q.id) : null}); }
 /* expandir/fechar (um aberto por vez) */
 document.addEventListener('click', e => {
-  const c = e.target.closest && e.target.closest('#view [data-dq]'); if(!c || e.target.closest('[data-q]')) return;
+  const c = e.target.closest && e.target.closest('#view [data-dq]'); if(!c || e.target.closest('[data-q],[data-topicgo]')) return;
   const on = !c.classList.contains('open');
   document.querySelectorAll('#view .dq.open').forEach(x => { x.classList.remove('open'); x.setAttribute('aria-expanded', 'false'); });
   if(on){ c.classList.add('open'); c.setAttribute('aria-expanded', 'true'); }
@@ -1597,11 +1601,12 @@ function revRun(ids, i, tab){
 let NOTE_SRC = {k: 'livre'};
 function srcLabel(src){
   if(!src) return 'Estudo livre';
+  if(src.k === 'res') return 'Resumos';
   if(src.k === 'dia') return 'Erros do dia ' + fmtD(src.d);
   if(src.k === 'sim'){ const s = src.id ? S.sims.find(x => x.id === src.id) : S.sims[src.n]; return s ? simName(s) : 'Simulado ' + (src.n + 1); }
   return 'Estudo livre';
 }
-function srcOrder(src){ if(!src) return '0'; if(src.k === 'dia') return '2' + src.d; if(src.k === 'sim') return '1' + String(src.n).padStart(4, '0'); return '0'; }
+function srcOrder(src){ if(!src) return '0'; if(src.k === 'res') return '3'; if(src.k === 'dia') return '2' + src.d; if(src.k === 'sim') return '1' + String(src.n).padStart(4, '0'); return '0'; }
 function sanitizeNote(html){
   const box = document.createElement('div'); box.innerHTML = html || '';
   const out = document.createElement('div');
@@ -1797,8 +1802,9 @@ function bindNoteBox(q, wrap){
       if(e.key !== 'Enter' || e.isComposing || e.ctrlKey || e.altKey || e.metaKey) return;
       e.preventDefault();
       if(e.shiftKey){ document.execCommand('insertLineBreak'); commit(); return; }
-      doCommit();
-      const nb = document.querySelector('#nextBtn'); if(nb) nb.click();
+      const nb = document.querySelector('#nextBtn');
+      if(!nb){ document.execCommand('insertLineBreak'); commit(); return; }
+      doCommit(); nb.click();
     });
     ed.addEventListener('paste', e => {
       const cd = e.clipboardData; if(!cd) return;
@@ -1874,7 +1880,15 @@ function bindNoteEditor(q){
 }
 
 /* ---------- Caderno de Erros ---------- */
-function noteIds(){ return Object.keys(S.notes).filter(id => QI[id] && hasNote(S.notes[id])); }
+const isTN = id => String(id).startsWith('t:');
+const tnT = id => RV.T[String(id).slice(2)];
+const noteOk = id => !!(QI[id] || (isTN(id) && tnT(id)));
+function noteIds(){ return Object.keys(S.notes).filter(id => noteOk(id) && hasNote(S.notes[id])); }
+/* rótulos de uma anotação, seja de questão ou de resumo */
+function noteMeta(id){
+  if(isTN(id)){ const tid = id.slice(2), t = tnT(id), inf = topicInfo(tid); return {a: inf.a, area: A.areas[inf.a].label, mat: inf.mats[0] || '', tema: t.t, head: 'Resumo', topic: tid}; }
+  const q = QI[id]; return {a: q.a, area: area(q).label, mat: mat(q).nome, tema: tema(q).tema, head: 'UERJ ' + q.y + ' · Q' + q.n, q};
+}
 const NB_OPEN = new Set(); /* grupos que você abriu (só durante o uso) */
 function delPart(id, i){
   const n = S.notes[id]; if(!n) return;
@@ -1890,13 +1904,14 @@ function pCaderno(){
   /* cada anotação (principal ou extra) é um cartão, com a própria origem */
   const entries = [];
   for(const id of noteIds()) for(const {i, p} of noteParts(id)) entries.push({id, i, p});
-  const list = entries.filter(x => !txt || norm(String(x.p.txt || '') + ' ' + tema(QI[x.id]).tema + ' ' + mat(QI[x.id]).nome).includes(norm(txt)));
+  const list = entries.filter(x => { if(!txt) return true; const m = noteMeta(x.id); return norm(String(x.p.txt || '') + ' ' + m.tema + ' ' + m.mat).includes(norm(txt)); });
   const groups = new Map();
   for(const x of list){
-    const q = QI[x.id];
+    const q = QI[x.id], m = noteMeta(x.id);
     let key, label, order;
     if(by === 'origem'){ key = srcOrder(x.p.src) + '|' + srcLabel(x.p.src); label = srcLabel(x.p.src); order = srcOrder(x.p.src); }
-    else if(by === 'area'){ key = 'a' + q.a; label = A.areas[q.a].label; order = String(q.a); }
+    else if(by === 'area'){ key = 'a' + m.a; label = m.area; order = String(m.a); }
+    else if(!q){ key = 'r.' + m.topic; label = m.tema + ' · Resumo'; order = norm(m.tema); }
     else { key = q.a + '.' + q.m + '.' + q.t; label = tema(q).tema + ' · ' + mat(q).nome; order = norm(tema(q).tema); }
     S.nbNames = S.nbNames || {};
     if(!groups.has(key)) groups.set(key, {key: by + '|' + key, label: S.nbNames[by + '|' + key] || label, order, items: []});
@@ -1904,6 +1919,11 @@ function pCaderno(){
   }
   const arr = [...groups.values()].sort((a, b) => by === 'origem' ? (a.order < b.order ? 1 : -1) : (a.order > b.order ? 1 : -1));
   const card = x => {
+    if(isTN(x.id)){ const m = noteMeta(x.id); return `<article class="nb-card">
+      <div class="nb-meta"><span>Resumo</span><span class="dot"></span><span>${esc(m.area)} › ${esc(m.tema)}</span>${x.p.ty === 'fv' || x.p.ty === 'io' ? `<span class="tag">${PART_T[x.p.ty]}</span>` : x.i > 0 ? '<span class="tag">+ anotação</span>' : ''}</div>
+      ${partView(x.p, true)}
+      <div class="nb-act"><span class="xs faint">${esc(srcLabel(x.p.src))}</span><span class="row" style="gap:2px"><button class="icon-btn" data-nbdel="${x.id}|${x.i}" title="Apagar esta anotação" aria-label="Apagar esta anotação">${TRASH_I}</button><button class="linkbtn" data-topicgo="${m.topic}">Abrir resumo para editar →</button></span></div>
+    </article>`; }
     const q = QI[x.id], n = S.notes[x.id], st = status(x.id);
     return `<article class="nb-card">
       <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.p.ty === 'fv' || x.p.ty === 'io' ? `<span class="tag">${PART_T[x.p.ty]}</span>` : x.i > 0 ? '<span class="tag">+ anotação</span>' : ''}</div>
@@ -1928,33 +1948,33 @@ function pCaderno(){
   document.querySelectorAll('[data-nbdel]').forEach(b => b.onclick = async () => { const [id, i] = b.dataset.nbdel.split('|'); const ok = await askChoice('Apagar esta anotação?', '', [{label: 'Apagar', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ delPart(id, +i); save(); renderNav(); pCaderno(); } });
   document.querySelectorAll('details.nb-group').forEach(d => d.addEventListener('toggle', () => { const k = by + '|' + d.dataset.g; if(d.open) NB_OPEN.add(k); else NB_OPEN.delete(k); }));
   let tt; $('#nbTxt').oninput = e => { clearTimeout(tt); tt = setTimeout(() => { route.txt = e.target.value; pCaderno(); const el = $('#nbTxt'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 300); };
-  const allIds = [...new Set(arr.flatMap(g => g.items.map(x => x.id)))];
+  const allIds = [...new Set(arr.flatMap(g => g.items.map(x => x.id)))].filter(id => QI[id]);
   document.querySelectorAll('[data-openq]').forEach(b => b.onclick = () => openQ(b.dataset.openq, allIds, 'Caderno de Erros', () => go('caderno', {by, txt: route.txt})));
 }
 
 /* ---------- revisão espaçada das anotações ---------- */
-function noteDue(){ S.nsrs = S.nsrs || {}; return Object.keys(S.nsrs).filter(id => QI[id] && hasNote(S.notes[id]) && S.nsrs[id].due <= today()).sort((a, b) => S.nsrs[a].due < S.nsrs[b].due ? -1 : 1); }
+function noteDue(){ S.nsrs = S.nsrs || {}; return Object.keys(S.nsrs).filter(id => noteOk(id) && hasNote(S.notes[id]) && S.nsrs[id].due <= today()).sort((a, b) => S.nsrs[a].due < S.nsrs[b].due ? -1 : 1); }
 function noteRun(ids, i){
   route = {page: 'noterun'}; renderNav();
   if(i >= ids.length){ toast('Revisão das anotações concluída.'); go('revisao', {tab: 'notas'}); return; }
-  const id = ids[i], q = QI[id], n = S.notes[id], sr = (S.nsrs || {})[id] || {step: 0};
+  const id = ids[i], q = QI[id], n = S.notes[id], sr = (S.nsrs || {})[id] || {step: 0}, m = noteMeta(id);
   const parts = noteParts(id);
   $('#view').innerHTML = `<div class="page">
     <div class="progress"><button class="btn ghost" id="backBtn">← Revisão</button><div class="bar"><i style="width:${pct(i, ids.length)}%"></i></div><div class="num small muted">${i + 1}/${ids.length}</div></div>
     <div class="eyebrow">Minhas anotações · ${esc(srcLabel((parts[0] || {p: n}).p.src))}</div>
-    <h2 style="margin:8px 0 6px">${esc(tema(q).tema)}</h2>
-    <div class="qmeta" style="margin-bottom:22px"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)}</span>${n.why ? ` <span class="tag">${esc(n.why)}</span>` : ''}</div>
+    <h2 style="margin:8px 0 6px">${esc(m.tema)}</h2>
+    <div class="qmeta" style="margin-bottom:22px"><span>${esc(m.head)}</span><span class="dot"></span><span>${esc(m.area)}${m.mat ? ' › ' + esc(m.mat) : ''}</span>${n.why ? ` <span class="tag">${esc(n.why)}</span>` : ''}</div>
     ${parts.some(x => x.p.ty === 'fv' || x.p.ty === 'io' || /n-cz/.test(x.p.html || '')) ? '<p class="xs faint" style="margin:-8px 0 14px">Tente lembrar antes de revelar: toque nos trechos escondidos, em "Mostrar verso" ou nas áreas cobertas.</p>' : ''}
     ${parts.map(x => `<div class="nb-big">${partView(x.p, true)}</div>`).join('')}
-    <details style="margin-top:20px"><summary>Relembrar a questão</summary><p class="small" style="margin-top:10px">${esc(q.x ? q.x + ' ' + q.s : q.s)}</p><p class="small muted">Gabarito: ${q.g} · ${esc(q.k)}</p></details>
+    ${q ? `<details style="margin-top:20px"><summary>Relembrar a questão</summary><p class="small" style="margin-top:10px">${esc(q.x ? q.x + ' ' + q.s : q.s)}</p><p class="small muted">Gabarito: ${q.g} · ${esc(q.k)}</p></details>` : ''}
     <div class="actions" style="margin-top:30px">
-      <button class="btn" id="openBtn">Abrir questão completa</button>
+      <button class="btn" id="openBtn">${q ? 'Abrir questão completa' : 'Abrir resumo completo'}</button>
       <div class="row"><button class="btn" id="againBtn">Preciso rever de novo</button><button class="btn primary" id="okBtn">Lembrei ✓</button></div>
     </div>
     <p class="xs faint" style="margin-top:14px">Etapa ${Math.min(sr.step + 1, SRS_STEPS.length)} de ${SRS_STEPS.length} (intervalos de 1, 3, 7, 15 e 30 dias).</p>
   </div>`;
   $('#backBtn').onclick = () => go('revisao', {tab: 'notas'});
-  $('#openBtn').onclick = () => openQ(id, [id], 'Minhas anotações', () => noteRun(ids, i));
+  $('#openBtn').onclick = () => q ? openQ(id, [id], 'Minhas anotações', () => noteRun(ids, i)) : go('materias', {topic: m.topic});
   $('#againBtn').onclick = () => { S.nsrs[id] = {step: 0, due: addDays(today(), SRS_STEPS[0])}; save(); noteRun(ids, i + 1); };
   $('#okBtn').onclick = () => { const st = (sr.step || 0) + 1; if(st >= SRS_STEPS.length) S.nsrs[id] = {step: st, due: '9999-12-31', done: true}; else S.nsrs[id] = {step: st, due: addDays(today(), SRS_STEPS[st])}; save(); noteRun(ids, i + 1); };
 }
@@ -1965,10 +1985,16 @@ function notesTabHTML(){
   return `<div class="spread" style="margin-bottom:12px"><span class="small muted">${due.length ? `${due.length} para revisar hoje` : 'Nenhuma anotação vence hoje'} · ${all.length} no total</span>
     ${due.length ? '<button class="btn primary" id="noteGo">Revisar anotações de hoje</button>' : ''}</div>
     <div class="dq-grid">${all.map(id => { const q = QI[id], n = S.notes[id], sr = (S.nsrs || {})[id]; const when = !sr ? '—' : sr.done ? 'concluída' : sr.due <= today() ? 'hoje' : fmtD(sr.due); const ps = noteParts(id);
+      if(!q){ const m = noteMeta(id); return `<div class="dq no" data-dq="${esc(id)}" role="button" tabindex="0" aria-expanded="false">
+        <div class="dq-top"><span class="dq-n num">Resumo</span><span class="dq-st">✎ Anotação</span></div>
+        <div class="dq-t">${esc(m.tema)}</div>
+        <div class="dq-m xs faint">${esc('revisar: ' + when + (ps.length > 1 ? ' · ' + ps.length + ' anotações' : ''))}</div>
+        <div class="dq-more"><div class="xs faint" style="margin-bottom:6px">${esc(m.area)}</div><div class="nb-note small" style="margin:0 0 12px">${esc(noteText(n))}</div><button class="btn" data-topicgo="${esc(m.topic)}">Abrir resumo →</button></div></div>`; }
       return qCard(q, status(id), {r: lastAns(id), sub: 'revisar: ' + when + (ps.length > 1 ? ' · ' + ps.length + ' anotações' : ''), extra: `<div class="nb-note small" style="margin:0 0 10px">${esc(noteText(n))}</div>`}); }).join('')}</div>`;
 }
 
 /* ---------- Matérias (revisões por tema) ---------- */
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#view [data-topicgo]'); if(b){ e.preventDefault(); go('materias', {topic: b.dataset.topicgo}); } });
 const TOPICQ = {};
 for(const [qid, tids] of Object.entries(RV.Q)) for(const t of tids){ (TOPICQ[t] = TOPICQ[t] || []).push(qid); }
 function topicInfo(tid){
@@ -2002,11 +2028,13 @@ function pMateria(tid){
   const t = RV.T[tid]; if(!t){ route.topic = null; return pMaterias(); }
   const info = topicInfo(tid);
   const back = {page: 'materias', fa: route.fa, txt: route.txt};
+  NOTE_SRC = {k: 'res'};
   $('#view').innerHTML = `<div class="page">
     <div class="progress"><button class="btn ghost" id="backBtn">← Matérias</button><div style="flex:1"></div>${hlBtn()}</div>
     <div class="eyebrow">${esc(A.areas[info.a].label)} · ${esc(info.mats.slice(0, 2).join(' · '))}</div>
     <h1 style="margin:8px 0 18px">${esc(t.t)}</h1>
     <section class="rv" style="margin-top:0;padding-top:0;border-top:0">${rvTopic(t, tid)}</section>
+    <div class="section rv-notes"><h3>Minhas anotações</h3><p class="xs faint" style="margin:-4px 0 12px">Vão para o Caderno de Erros (em "Resumos") e para a revisão espaçada em Revisão → Minhas anotações.</p>${noteEditorHTML({id: 't:' + tid})}</div>
     <div class="section"><div class="spread"><h3>Questões da UERJ sobre este tema</h3>${info.qs.length ? '<button class="btn" id="stTopic">Estudar estas questões</button>' : ''}</div>
       <div class="dq-grid">${info.qs.map(id => qRow(QI[id], status(id))).join('')}</div></div>
   </div>`;
@@ -2014,6 +2042,7 @@ function pMateria(tid){
   $('#backBtn').onclick = () => go('materias', back);
   if($('#stTopic')) $('#stTopic').onclick = () => { const first = info.qs.find(id => !S.ans[id]) || info.qs[0]; openQ(first, info.qs, 'Matéria', backFn); };
   bindQRows(info.qs, 'Matéria', backFn);
+  bindNoteEditor({id: 't:' + tid});
   paintMarks();
 }
 
@@ -2271,18 +2300,25 @@ function crStatsHTML(){
       ${n ? `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas hoje</div></div></div>
       <p class="muted small" style="margin:12px 0 0">${pct(ok, n)}% de acerto hoje</p>`
       : `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">0</div><div class="xs faint">questões feitas hoje</div></div></div><p class="muted small" style="margin:12px 0 0">Conta só o que você fizer hoje dos temas do cronograma. Amanhã começa do zero.</p>`}
-      ${rows.length ? `<details class="nb-group cr-stats"><summary><span class="nb-gt">% de acertos por área</span><span class="faint small">desde 03/10</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(A.areas[k].label, g.ok, g.n)).join('')}</div></details>` : ''}
+      ${rows.length ? `<div class="cr-sep" role="separator"></div><details class="nb-group cr-stats"><summary><span class="nb-gt">Porcentagem de acertos por área, desde o início</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(A.areas[k].label, g.ok, g.n)).join('')}</div></details>` : ''}
     </div><div class="row" style="justify-content:flex-start"><button class="btn" data-go="crono">Abrir cronograma</button></div></div>`;
 }
 
-/* uma linha discreta no Início com o que está no cronograma de hoje */
+/* Início: o que está no cronograma de hoje — acompanha o que você marca como feito */
 function crTodayLine(){
-  const C = S.crono && S.crono.days ? S.crono : null;
-  const list = ((C && C.days[today()]) || crBuild().days[today()] || []).filter(b => b.ty !== 'pausa').sort((a, b) => a.s < b.s ? -1 : 1);
+  if(!S.crono || !S.crono.days) S.crono = crBuild();
+  const list = (S.crono.days[today()] || []).filter(b => b.ty !== 'pausa').sort((a, b) => a.s < b.s ? -1 : 1);
   if(!list.length) return '';
-  const b = list.find(x => !x.done) || list[0];
-  return `<div class="cr-home"><span class="eyebrow">Hoje no cronograma</span><button class="linkbtn" data-go="crono"><span class="num">${b.s}–${b.e}</span> · ${esc(CR_TYPES[b.ty] || '')} · ${esc(b.ti)} →</button></div>`;
+  const done = list.filter(b => b.done).length, next = list.find(x => !x.done);
+  if(!next) return `<div class="cr-home cr-home-done"><span class="eyebrow">Hoje no cronograma</span><button class="linkbtn" data-go="crono"><span class="cr-okic" aria-hidden="true">✓</span> Tudo feito hoje · ${done} de ${list.length} ${list.length === 1 ? 'atividade concluída' : 'atividades concluídas'}</button></div>`;
+  return `<div class="cr-home"><div class="spread"><span class="eyebrow">Hoje no cronograma</span><span class="xs faint num">${done} de ${list.length} feitas</span></div>
+    <div class="cr-home-row"><button class="cr-ck" data-homeck="${next.id}" aria-pressed="false" title="Marcar como feito" aria-label="Marcar como feito"></button><button class="linkbtn" data-go="crono">${done ? 'Agora: ' : ''}<span class="num">${next.s}–${next.e}</span> · ${esc(CR_TYPES[next.ty] || '')} · ${esc(next.ti)} →</button></div></div>`;
 }
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-homeck]'); if(!b) return;
+  const x = (S.crono.days[today()] || []).find(y => y.id === b.dataset.homeck); if(!x) return;
+  x.done = true; save(); if(route.page === 'inicio') go('inicio');
+});
 
 /* ---------- Gráficos (SVG, sem bibliotecas) ---------- */
 function lineChart(points, opts){
