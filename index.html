@@ -211,6 +211,43 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button:hover{background:rgba(255,255,255,.12)}
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
+details.cr-day > summary::before{content:none!important;display:none!important}
+
+/* v21: questões do cronograma, dias recolhidos, temas múltiplos, estatísticas */
+.cr-q{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 12px;background:var(--bg)}
+.cr-qh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:14px}
+.cr-bar{position:relative;height:6px;border-radius:9px;background:var(--sunk);margin:10px 0 12px;overflow:hidden}
+.cr-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:9px}
+.cr-bar .d{background:color-mix(in srgb, var(--accent) 30%, transparent)}
+.cr-bar .o{background:var(--ok)}
+.cr-qgo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cr-n{width:64px;text-align:center;padding:6px 8px!important}
+.cr-qgo .btn{margin-left:auto;padding:7px 14px}
+.cr-pg{flex:none;font-size:11.5px;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+details.cr-day{padding:0;margin:0;border-top:1px solid var(--line)}
+details.cr-day > summary{list-style:none;cursor:pointer;padding:12px 0;margin:0}
+details.cr-day > summary::-webkit-details-marker{display:none}
+details.cr-day[open] > summary{padding-bottom:6px}
+details.cr-day[open]{padding-bottom:10px}
+.cr-chev{width:7px;height:7px;border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);transform:rotate(-45deg);transition:transform .15s;margin:0 4px 0 2px}
+details.cr-day[open] .cr-chev{transform:rotate(45deg)}
+details.cr-day.alldone > summary{color:var(--ok)}
+.cr-alldone{font-size:11.5px;font-weight:600;color:var(--ok);background:var(--ok-soft);border-radius:999px;padding:2px 9px}
+details.cr-day.alldone{background:linear-gradient(90deg, var(--ok-soft), transparent 60%);border-radius:10px;margin:0 -10px!important;padding-left:10px;padding-right:10px}
+.sel-btn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;border:1px solid var(--line-2);border-radius:9px;padding:9px 12px;background:var(--surface);font-size:14px;color:var(--ink)}
+.tema-chips{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.tema-chips .chip{font-size:12.5px}
+.mdl-wide{width:min(620px,100%)}
+.tm-list{max-height:min(56vh,520px);overflow-y:auto;margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.tm-gh{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:12px 0 4px}
+.tm-i{display:flex;align-items:center;gap:10px;padding:6px 4px;border-radius:7px;cursor:pointer;font-size:14px}
+.tm-i:hover{background:var(--sunk)}
+.tm-i span:nth-child(2){flex:1}
+.hero2{margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
+.cr-stats{margin-top:14px;border-top:1px solid var(--line)!important}
+.cr-stats > summary{font-size:14px!important;padding:12px 2px!important}
+.nb-group > summary .icon-btn{margin-left:2px}
+
 body.tmp-erase .er-ring{border-color:var(--bad);background:color-mix(in srgb, var(--bad) 10%, transparent)}
 body.tmp-erase #view *{cursor:cell!important}
 
@@ -672,7 +709,7 @@ const WHY = ['Não sabia o conteúdo','Confundi conceitos','Li com pressa','Caí
 
 /* ---------- state ---------- */
 let S = blank();
-function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, tnotes:{}, ink:{}, simPaused:[], simDel:[], ansDel:{}, crono:null, set:{exam:'', theme:''}, cur:{}, mt:0}; }
+function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, tnotes:{}, ink:{}, simPaused:[], simDel:[], ansDel:{}, crono:null, nbNames:{}, set:{exam:'', theme:''}, cur:{}, mt:0}; }
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, v); return true; }catch(e){ return false; } }
 function load(){ try{ const s = JSON.parse(lsGet(SKEY)); if(s && s.ans) return Object.assign(blank(), s); }catch(e){} return blank(); }
@@ -687,7 +724,7 @@ function merge(a, b){
   for(const src of [a, b]) for(const id in (src.ansDel || {})){ const t = o.ansDel[id] = o.ansDel[id] || []; for(const x of src.ansDel[id]) if(!t.includes(x)) t.push(x); }
   for(const src of [a, b]) for(const id in src.ans){ const del = o.ansDel[id] || []; for(const x of src.ans[id]){ if(del.includes(x.t)) continue; const arr = o.ans[id] = o.ans[id] || []; if(!arr.some(y => y.t === x.t)) arr.push(x); } }
   for(const id in o.ans) o.ans[id].sort((x, y) => x.t - y.t);
-  for(const k of ['fav','notes','srs','nsrs','marks','tnotes','ink','simPaused','crono','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
+  for(const k of ['fav','notes','srs','nsrs','marks','tnotes','ink','simPaused','crono','nbNames','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
   const dates = new Set([...Object.keys(a.days), ...Object.keys(b.days)]);
   for(const d of dates){
     const x = a.days[d], y = b.days[d];
@@ -784,7 +821,9 @@ function hash(str){ let h = 2166136261; for(const c of str){ h ^= c.charCodeAt(0
 /* ---------- recording answers ---------- */
 function record(id, ch, conf, sec, mode){
   const q = QI[id]; const ok = ch === q.g;
-  (S.ans[id] = S.ans[id] || []).push({t: Date.now(), d: today(), ch, ok, conf: conf||'', sec: sec||0, mode});
+  const entry = {t: Date.now(), d: today(), ch, ok, conf: conf||'', sec: sec||0, mode};
+  if(CR_SESSION && CR_SESSION.ids.includes(id) && mode !== 'simulado' && mode !== 'dia'){ entry.cr = CR_SESSION.title; if(!CR_SESSION.answered.includes(id)) CR_SESSION.answered.push(id); }
+  (S.ans[id] = S.ans[id] || []).push(entry);
   if(valid(q)){
     if(!ok || conf === 'chute'){ S.srs[id] = {step:0, due: addDays(today(), SRS_STEPS[0])}; }
     else if(S.srs[id]){ const st = S.srs[id].step + 1; if(st >= SRS_STEPS.length) delete S.srs[id]; else S.srs[id] = {step: st, due: addDays(today(), SRS_STEPS[st])}; }
@@ -861,7 +900,8 @@ const NAV = [
   ['revisao','Revisão'], ['caderno','Caderno de Erros'], ['materias','Matérias'], ['graficos','Meus gráficos'], ['cai','O que mais cai']
 ];
 let route = {page:'inicio'};
-function go(page, params){ route = Object.assign({page}, params||{}); render(); window.scrollTo(0,0); }
+let CR_SESSION = null; /* questões abertas pelo cronograma: {title, ids} */
+function go(page, params){ CR_SESSION = null; route = Object.assign({page}, params||{}); render(); window.scrollTo(0,0); }
 function renderNav(){
   const dueN = Object.values(S.srs).filter(s => s.due <= today()).length;
   const d = S.days[today()]; const done = d ? Object.keys(d.res).length : 0;
@@ -908,15 +948,17 @@ function pInicio(){
     <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}, ${esc(displayName())}.</h1><div class="xs faint sync-home"><span class="sync-dot"></span><span id="syncHome">${esc(Cloud.label())}</span></div></div></div>
     <div class="hero">
       <div>
-        <div class="eyebrow">${d.ids.length} questões de hoje</div>
-        <div class="hero-n"><div class="big num" style="margin:10px 0 18px">${ds.n}<span>/${d.ids.length}</span></div>${ds.n ? `<div class="hero-ok num" title="Acertos nas questões de hoje">${ds.ok}<span>/${d.ids.length} acertos</span></div>` : ''}</div>
-        <div class="bar"><i style="width:${pct(ds.n, d.ids.length)}%"></i></div>
-        <p class="muted small" style="margin:12px 0 0">${doneAll ? `Concluídas, com ${ds.acc}% de acerto.` : ds.n ? `${ds.acc}% de acerto até aqui.` : 'Selecionadas do banco UERJ, priorizando questões que você ainda não fez.'}</p>
+        <div class="eyebrow">Questões do dia</div>
+        ${ds.n ? `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ds.ok}<span>/${ds.n}</span></div><div class="xs faint">acertos / feitas</div></div><div class="hero-ok num">${ds.n}<span>/${d.ids.length} feitas</span></div></div>`
+          : `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${d.ids.length}</div><div class="xs faint">questões para hoje</div></div></div>`}
+        <div class="bar" style="margin-top:16px"><i style="width:${pct(ds.n, d.ids.length)}%"></i></div>
+        <p class="muted small" style="margin:12px 0 0">${ds.n ? `${ds.acc}% de acerto nas questões feitas` : 'Selecionadas do banco UERJ, priorizando questões que você ainda não fez.'}</p>
       </div>
       <div class="row" style="justify-content:flex-start">
         ${doneAll ? `<button class="btn primary" data-go="dia">Ver resultado do dia</button><button class="btn" data-go="revisao">Ir para a revisão</button>` : `<button class="btn primary" data-go="hoje">${ds.n ? 'Continuar' : 'Começar'}</button>`}
       </div>
     </div>
+    ${crStatsHTML()}
     ${crTodayLine()}
     <div class="section" style="margin-top:44px"><div class="stats">
       <div class="stat"><b class="num">${Q.length}</b><span>questões no banco · ${Q.length - validN} anuladas</span></div>
@@ -927,7 +969,7 @@ function pInicio(){
     <div class="section"><div class="eyebrow" style="margin-bottom:16px">Nota do mentor</div>
       ${tips.map(t => `<div class="mentor" style="margin-bottom:22px"><strong>${esc(t[0])}</strong><p class="muted">${esc(t[1])}</p></div>`).join('')}
     </div>
-    ${recent.length ? `<div class="section"><h3>Últimos dias</h3><div class="list">${recent.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.n} de ${S.days[k].ids.length} respondidas</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div></div>` : ''}
+    ${recent.length ? `<div class="section"><h3>Últimos dias</h3><div class="list">${recent.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.ok} ${x.ok === 1 ? 'acerto' : 'acertos'} de ${x.n} ${x.n === 1 ? 'feita' : 'feitas'}</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div></div>` : ''}
   </div>`;
   document.querySelectorAll('[data-day]').forEach(el => el.onclick = () => go('dia', {date: el.dataset.day}));
 }
@@ -1174,12 +1216,12 @@ function pDia(){
       <div class="stat"><b class="num">${ds.acc}%</b><span>de acerto</span></div>
       <div class="stat"><b class="num">${ds.ok}</b><span>acertos</span></div>
       <div class="stat"><b class="num">${ds.bad}</b><span>erros</span></div>
-      <div class="stat"><b class="num">${ds.n}/${d.ids.length}</b><span>respondidas</span></div>
+      <div class="stat"><b class="num">${ds.n}</b><span>${ds.n === 1 ? 'feita' : 'feitas'}</span></div>
     </div>
     <div style="margin-top:12px">${totalsLine(true)}</div>
     <div class="section"><h3>Por especialidade</h3>${Object.keys(byArea).sort((a,b)=>a-b).map(k => hbar(A.areas[k].label, byArea[k].ok, byArea[k].n)).join('')}</div>
-    <div class="section"><div class="spread"><h3>Questões do dia</h3><div class="row xs faint dq-legend"><span><i class="dq-dot ok"></i>${ds.ok} acertos</span><span><i class="dq-dot bad"></i>${ds.bad} erros</span>${pending ? `<span><i class="dq-dot no"></i>${pending} sem resposta</span>` : ''}</div></div>
-      <div class="dq-grid">${d.ids.map((id, j) => dayCard(QI[id], d.res[id], j)).join('')}</div></div>
+    <div class="section"><div class="spread"><h3>Questões do dia</h3><div class="row xs faint dq-legend"><span><i class="dq-dot ok"></i>${ds.ok} acertos</span><span><i class="dq-dot bad"></i>${ds.bad} erros</span>${pending && date === today() ? `<span><i class="dq-dot no"></i>${pending} ainda hoje</span>` : ''}</div></div>
+      <div class="dq-grid">${d.ids.map((id, j) => [id, j]).filter(([id]) => d.res[id] || date === today()).map(([id, j]) => dayCard(QI[id], d.res[id], j)).join('')}</div></div>
     ${errs.length ? `<div class="section"><p class="muted">Os ${errs.length} erros de hoje já entraram na sua revisão espaçada e voltam amanhã.</p></div>` : ''}
   </div>`;
   bindQRows(d.ids, 'Resultado do dia', () => go('dia', {date}), {k: 'dia', d: date});
@@ -1196,7 +1238,7 @@ function openQ(id, list, backLabel, backFn, src){
   NOTE_SRC = src || {k: 'livre'};
   renderNav();
   const q = QI[id]; const i = list ? list.indexOf(id) : -1;
-  const reveal = !!S.ans[id] && !route.retry;
+  const reveal = !!S.ans[id] && !route.retry && !(CR_SESSION && CR_SESSION.ids.includes(id) && !CR_SESSION.answered.includes(id));
   const l = last(id);
   studyRunner(q, {
     back: backLabel, onBack: backFn, mode: 'banco',
@@ -1216,10 +1258,10 @@ function openQ(id, list, backLabel, backFn, src){
 function pQuestao(){ openQ(route.id, route.list, route.backLabel, route.backFn || (() => go('banco')), route.src); }
 
 /* ---------- Banco de questões ---------- */
-const F = {ano:'', area:'', mat:'', tema:'', dif:'', st:'', txt:'', anul:false};
+const F = {ano:'', area:'', mat:'', tema:'', temas:[], dif:'', st:'', txt:'', anul:false};
 function filtered(){
   const t = F.txt.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-  return Q.filter(q => (!F.ano || q.y == F.ano) && (F.area==='' || q.a == F.area) && (F.mat==='' || q.m == F.mat) && (F.tema==='' || q.t == F.tema) && (!F.dif || q.d == F.dif)
+  return Q.filter(q => (!F.ano || q.y == F.ano) && (F.area==='' || q.a == F.area) && (F.mat==='' || q.m == F.mat) && (F.temas.length ? F.temas.includes(q.a + '.' + q.m + '.' + q.t) : (F.tema==='' || q.t == F.tema)) && (!F.dif || q.d == F.dif)
     && (!F.st || (F.st==='fav' ? S.fav[q.id] : status(q.id) === F.st)) && (F.anul || valid(q))
     && (!t || (q.s+' '+(q.x||'')+' '+q.o.join(' ')+' '+tema(q).tema+' '+mat(q).nome).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(t)));
 }
@@ -1235,11 +1277,12 @@ function pBanco(){
       <label class="f">Ano<select id="fAno"><option value="">Todos</option>${opts([2026,2025,2024,2023,2022].map(y=>[y,y]), F.ano)}</select></label>
       <label class="f">Especialidade<select id="fArea"><option value="">Todas</option>${opts(A.areas.map((a,i)=>[i,a.label]), F.area)}</select></label>
       <label class="f">Subárea<select id="fMat" ${F.area===''?'disabled':''}><option value="">Todas</option>${opts(mats, F.mat)}</select></label>
-      <label class="f">Tema<select id="fTema" ${F.mat===''?'disabled':''}><option value="">Todos</option>${opts(temas, F.tema)}</select></label>
+      <label class="f">Temas<button type="button" class="sel-btn" id="fTemas">${F.temas.length ? F.temas.length + (F.temas.length > 1 ? ' temas' : ' tema') : 'Todos'}<span aria-hidden="true">▾</span></button></label>
       <label class="f">Dificuldade<select id="fDif"><option value="">Todas</option>${opts([[1,'Fácil'],[2,'Média'],[3,'Difícil']], F.dif)}</select></label>
       <label class="f">Situação<select id="fSt"><option value="">Todas</option>${opts([['ok','Acertadas'],['bad','Erradas'],['no','Não respondidas'],['fav','Favoritas']], F.st)}</select></label>
       <label class="f" style="grid-column:span 2">Buscar no texto<input type="text" id="fTxt" value="${esc(F.txt)}" placeholder="Ex.: Kawasaki, TOTG, Glasgow"></label>
     </div>
+    ${F.temas.length ? `<div class="tema-chips">${F.temas.map(k => { const [a, m, t] = k.split('.'); return `<button class="chip" data-untema="${k}" title="Tirar este tema">${esc(A.areas[a].materias[m].temas[t].tema)} <span aria-hidden="true">×</span></button>`; }).join('')}</div>` : ''}
     <div class="spread" style="margin:6px 0 18px">
       <label class="small muted row" style="gap:8px"><input type="checkbox" id="fAnul" ${F.anul?'checked':''}> Incluir anuladas</label>
       <div class="row"><span class="small muted num">${list.length} ${list.length===1?'questão':'questões'}</span>
@@ -1250,13 +1293,34 @@ function pBanco(){
     ${list.length > shown.length ? `<div style="margin-top:22px"><button class="btn" id="more">Mostrar mais</button></div>` : ''}
   </div>`;
   const on = (id, k, reset) => $(id).onchange = e => { F[k] = e.target.type==='checkbox' ? e.target.checked : e.target.value; (reset||[]).forEach(r => F[r] = ''); route.lim = 60; pBanco(); };
-  on('#fAno','ano'); on('#fArea','area',['mat','tema']); on('#fMat','mat',['tema']); on('#fTema','tema'); on('#fDif','dif'); on('#fSt','st'); on('#fAnul','anul');
+  on('#fAno','ano'); on('#fArea','area',['mat','tema']); on('#fMat','mat',['tema']); on('#fDif','dif'); on('#fSt','st'); on('#fAnul','anul');
+  $('#fTemas').onclick = pickTemas;
+  document.querySelectorAll('[data-untema]').forEach(b => b.onclick = () => { F.temas = F.temas.filter(k => k !== b.dataset.untema); pBanco(); });
   let tt; $('#fTxt').oninput = e => { clearTimeout(tt); tt = setTimeout(() => { F.txt = e.target.value; route.lim = 60; pBanco(); const el = $('#fTxt'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 300); };
-  $('#fClear').onclick = () => { Object.assign(F, {ano:'', area:'', mat:'', tema:'', dif:'', st:'', txt:'', anul:false}); pBanco(); };
+  $('#fClear').onclick = () => { Object.assign(F, {ano:'', area:'', mat:'', tema:'', temas:[], dif:'', st:'', txt:'', anul:false}); pBanco(); };
   if($('#more')) $('#more').onclick = () => { route.lim = (route.lim||60) + 60; pBanco(); };
   const ids = list.map(q => q.id);
   if($('#studyAll')) $('#studyAll').onclick = () => { const first = ids.find(id => !S.ans[id]) || ids[0]; openQ(first, ids, 'Questões', () => go('banco')); };
   bindQRows(ids, 'Questões', () => go('banco'));
+}
+
+
+/* seletor de vários temas para filtrar as questões */
+function pickTemas(){
+  const sel = new Set(F.temas);
+  const groups = [];
+  A.areas.forEach((a, ai) => { if(F.area !== '' && +F.area !== ai) return; a.materias.forEach((m, mi) => { if(F.mat !== '' && +F.mat !== mi) return; groups.push({a, ai, m, mi}); }); });
+  const bd = modal(`<h3>Escolher temas</h3><input type="text" class="mdl-in" id="tmQ" placeholder="Buscar tema (ex.: colecistite)">
+    <div class="tm-list">${groups.map(g => `<div class="tm-g" data-g><div class="tm-gh">${esc(g.a.label)} › ${esc(g.m.nome)}</div>${g.m.temas.map((t, ti) => { const k = g.ai + '.' + g.mi + '.' + ti; return `<label class="tm-i" data-n="${esc((t.tema + ' ' + g.m.nome).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))}"><input type="checkbox" value="${k}" ${sel.has(k) ? 'checked' : ''}><span>${esc(t.tema)}</span><span class="faint xs num">${t.qtd}</span></label>`; }).join('')}</div>`).join('')}</div>
+    <div class="mdl-opts row"><button class="btn ghost" data-clear>Limpar</button><span style="flex:1"></span><button class="btn ghost" data-x>Cancelar</button><button class="btn primary" data-ok>Aplicar</button></div>`);
+  bd.querySelector('.mdl').classList.add('mdl-wide');
+  const q = bd.querySelector('#tmQ');
+  q.addEventListener('input', () => { const v = q.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim(); bd.querySelectorAll('.tm-i').forEach(l => l.hidden = v && !l.dataset.n.includes(v)); bd.querySelectorAll('[data-g]').forEach(g => g.hidden = ![...g.querySelectorAll('.tm-i')].some(l => !l.hidden)); });
+  q.addEventListener('keydown', e => e.stopPropagation());
+  bd.querySelector('[data-clear]').onclick = () => bd.querySelectorAll('.tm-i input').forEach(c => c.checked = false);
+  bd.querySelector('[data-x]').onclick = () => bd.remove();
+  bd.querySelector('[data-ok]').onclick = () => { F.temas = [...bd.querySelectorAll('.tm-i input:checked')].map(c => c.value); F.tema = ''; bd.remove(); route.lim = 60; pBanco(); };
+  bd.addEventListener('click', e => { if(e.target === bd) bd.remove(); });
 }
 
 /* ---------- Simulado ---------- */
@@ -1506,7 +1570,7 @@ function pRevisao(){
   if(tab==='nao'){ ids = unIds; body = listOf(ids, 'Você já respondeu todas as questões do banco.'); }
   if(tab==='hist'){
     const days = Object.keys(S.days).filter(k => Object.keys(S.days[k].res).length).sort().reverse();
-    body = `<h3 style="margin-bottom:12px">Questões do dia</h3>${days.length ? `<div class="list">${days.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.ok} acertos · ${x.bad} erros · ${x.n}/${S.days[k].ids.length}</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div>` : '<div class="empty">Nenhum dia registrado.</div>'}
+    body = `<h3 style="margin-bottom:12px">Questões do dia</h3>${days.length ? `<div class="list">${days.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.ok} acertos de ${x.n} feitas</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div>` : '<div class="empty">Nenhum dia registrado.</div>'}
       <h3 style="margin:40px 0 12px">Simulados</h3>${S.sims.length ? `<div class="list">${S.sims.map((s,j)=>[s,j]).reverse().map(([s,j]) => `<div class="li click" data-sim="${j}"><div class="t"><div>${esc(simName(s, j))}</div><div class="xs faint">${fmtD(s.date)} · ${s.ids.length} questões · ${esc(s.label)}</div></div><div class="num">${s.acc}%</div></div>`).join('')}</div>` : '<div class="empty">Nenhum simulado feito.</div>'}`;
   }
   $('#view').innerHTML = `<div class="page"><div class="head"><div><h1>Revisão</h1></div></div>
@@ -1812,6 +1876,13 @@ function bindNoteEditor(q){
 /* ---------- Caderno de Erros ---------- */
 function noteIds(){ return Object.keys(S.notes).filter(id => QI[id] && hasNote(S.notes[id])); }
 const NB_OPEN = new Set(); /* grupos que você abriu (só durante o uso) */
+function delPart(id, i){
+  const n = S.notes[id]; if(!n) return;
+  if(i === 0){ Object.assign(n, {ty: 'txt', html: '', txt: '', f: '', b: '', img: '', boxes: []}); }
+  else if(n.more){ n.more[i - 1] = null; }
+  if(n.more) n.more = n.more.filter(Boolean);
+  if(!hasNote(n)){ delete S.notes[id]; if(S.nsrs) delete S.nsrs[id]; }
+}
 function pCaderno(){
   const by = route.by || 'origem';
   const txt = (route.txt || '').toLowerCase();
@@ -1827,7 +1898,8 @@ function pCaderno(){
     if(by === 'origem'){ key = srcOrder(x.p.src) + '|' + srcLabel(x.p.src); label = srcLabel(x.p.src); order = srcOrder(x.p.src); }
     else if(by === 'area'){ key = 'a' + q.a; label = A.areas[q.a].label; order = String(q.a); }
     else { key = q.a + '.' + q.m + '.' + q.t; label = tema(q).tema + ' · ' + mat(q).nome; order = norm(tema(q).tema); }
-    if(!groups.has(key)) groups.set(key, {label, order, items: []});
+    S.nbNames = S.nbNames || {};
+    if(!groups.has(key)) groups.set(key, {key: by + '|' + key, label: S.nbNames[by + '|' + key] || label, order, items: []});
     groups.get(key).items.push(x);
   }
   const arr = [...groups.values()].sort((a, b) => by === 'origem' ? (a.order < b.order ? 1 : -1) : (a.order > b.order ? 1 : -1));
@@ -1835,8 +1907,8 @@ function pCaderno(){
     const q = QI[x.id], n = S.notes[x.id], st = status(x.id);
     return `<article class="nb-card">
       <div class="nb-meta"><span>UERJ ${q.y} · Q${q.n}</span><span class="dot"></span><span>${esc(area(q).label)} › ${esc(mat(q).nome)} › ${esc(tema(q).tema)}</span>${st !== 'no' ? `<span class="st ${st}">${st === 'ok' ? 'Acertou' : 'Errou'}</span>` : ''}${n.why && x.i === 0 ? `<span class="tag">${esc(n.why)}</span>` : ''}${x.p.ty === 'fv' || x.p.ty === 'io' ? `<span class="tag">${PART_T[x.p.ty]}</span>` : x.i > 0 ? '<span class="tag">+ anotação</span>' : ''}</div>
-      ${partView(x.p, false)}
-      <div class="nb-act"><span class="xs faint">${esc(srcLabel(x.p.src))}</span><button class="linkbtn" data-openq="${x.id}">Abrir questão →</button></div>
+      ${partView(x.p, true)}
+      <div class="nb-act"><span class="xs faint">${esc(srcLabel(x.p.src))}</span><span class="row" style="gap:2px"><button class="icon-btn" data-nbdel="${x.id}|${x.i}" title="Apagar esta anotação" aria-label="Apagar esta anotação">${TRASH_I}</button><button class="linkbtn" data-openq="${x.id}">Abrir questão para editar →</button></span></div>
     </article>`;
   };
   $('#view').innerHTML = `<div class="page">
@@ -1846,10 +1918,14 @@ function pCaderno(){
       <div class="row">${[['origem','Por dia ou simulado'],['area','Por grande área'],['tema','Por tema']].map(([k, t]) => `<button class="chip" data-by="${k}" aria-pressed="${by === k}">${t}</button>`).join('')}</div>
       <input type="text" id="nbTxt" placeholder="Buscar nas anotações (ex.: colecistite)" value="${esc(route.txt || '')}" style="min-width:240px">
     </div>
-    ${arr.length ? arr.map(g => `<details class="nb-group" data-g="${esc(g.label)}"${NB_OPEN.has(by + '|' + g.label) ? ' open' : ''}><summary><span class="nb-gt">${esc(g.label)}</span><span class="faint small num">${g.items.length} ${g.items.length === 1 ? 'anotação' : 'anotações'}</span></summary><div class="nb-gbody">${g.items.sort((a, b) => (b.p.u || 0) - (a.p.u || 0)).map(card).join('')}</div></details>`).join('')
+    ${arr.length ? arr.map(g => `<details class="nb-group" data-g="${esc(g.label)}"${NB_OPEN.has(by + '|' + g.label) ? ' open' : ''}><summary><span class="nb-gt">${esc(g.label)}</span><span class="faint small num">${g.items.length} ${g.items.length === 1 ? 'anotação' : 'anotações'}</span><button class="icon-btn" data-nbren="${esc(g.key)}" data-lab="${esc(g.label)}" title="Renomear" aria-label="Renomear">${PEN_I}</button><button class="icon-btn" data-nbgdel="${esc(g.key)}" title="Apagar este grupo" aria-label="Apagar este grupo">${TRASH_I}</button></summary><div class="nb-gbody">${g.items.sort((a, b) => (b.p.u || 0) - (a.p.u || 0)).map(card).join('')}</div></details>`).join('')
       : `<div class="empty">${entries.length ? 'Nenhuma anotação com esse filtro.' : 'Você ainda não fez anotações. Depois de responder uma questão, escreva em "Minha anotação": ela aparece aqui, separada por "Erros do dia", "Simulado", grande área ou tema.'}</div>`}
   </div>`;
   document.querySelectorAll('[data-by]').forEach(b => b.onclick = () => go('caderno', {by: b.dataset.by, txt: route.txt}));
+  const gItems = new Map(arr.map(g => [g.key, g.items]));
+  document.querySelectorAll('[data-nbren]').forEach(b => b.onclick = async e => { e.preventDefault(); e.stopPropagation(); const v = await askText('Nome do caderno', b.dataset.lab); if(v){ S.nbNames = S.nbNames || {}; S.nbNames[b.dataset.nbren] = v; save(); pCaderno(); } });
+  document.querySelectorAll('[data-nbgdel]').forEach(b => b.onclick = async e => { e.preventDefault(); e.stopPropagation(); const items = gItems.get(b.dataset.nbgdel) || []; const ok = await askChoice('Apagar este caderno?', `As ${items.length} anotações dele serão apagadas (das questões, do Caderno e da revisão). Não dá para desfazer.`, [{label: 'Apagar', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ items.slice().sort((x, y) => y.i - x.i).forEach(x => delPart(x.id, x.i)); save(); renderNav(); pCaderno(); } });
+  document.querySelectorAll('[data-nbdel]').forEach(b => b.onclick = async () => { const [id, i] = b.dataset.nbdel.split('|'); const ok = await askChoice('Apagar esta anotação?', '', [{label: 'Apagar', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ delPart(id, +i); save(); renderNav(); pCaderno(); } });
   document.querySelectorAll('details.nb-group').forEach(d => d.addEventListener('toggle', () => { const k = by + '|' + d.dataset.g; if(d.open) NB_OPEN.add(k); else NB_OPEN.delete(k); }));
   let tt; $('#nbTxt').oninput = e => { clearTimeout(tt); tt = setTimeout(() => { route.txt = e.target.value; pCaderno(); const el = $('#nbTxt'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 300); };
   const allIds = [...new Set(arr.flatMap(g => g.items.map(x => x.id)))];
@@ -2056,8 +2132,18 @@ function crTips(b){
   }
   return out.slice(0, 8);
 }
-function crQs(b){ const s = new Set(); (b.rv || []).forEach(id => (TOPICQ[id] || []).forEach(q => { if(QI[q] && valid(QI[q])) s.add(q); })); return [...s]; }
-let CR_OPEN = null, CR_EDIT = null;
+const QORD = new Map(Q.map((q, i) => [q.id, i]));
+function crQs(b){ const s = new Set(); (b.rv || []).forEach(id => (TOPICQ[id] || []).forEach(q => { if(QI[q] && valid(QI[q])) s.add(q); })); return [...s].sort((x, y) => QORD.get(x) - QORD.get(y)); }
+function crProg(qs){ const done = qs.filter(id => S.ans[id] && S.ans[id].length); const ok = done.filter(id => S.ans[id][S.ans[id].length - 1].ok).length; return {total: qs.length, done: done.length, ok, acc: pct(ok, done.length)}; }
+function crQPanel(b, qs){
+  const g = crProg(qs), left = g.total - g.done, def = Math.min(10, left || g.total);
+  return `<div class="cr-q">
+    <div class="cr-qh"><span>Questões deste tema <b class="num">${g.total}</b></span><span class="faint small num">${g.done ? `${g.done} feitas · ${g.ok} acertos (${g.acc}%)` : 'nenhuma feita ainda'}</span></div>
+    <div class="cr-bar" title="${g.done} de ${g.total} feitas · ${g.ok} acertos"><i class="d" style="width:${pct(g.done, g.total)}%"></i><i class="o" style="width:${pct(g.ok, g.total)}%"></i></div>
+    <div class="cr-qgo"><span class="small muted">Fazer</span><input type="number" class="cr-n" id="crn-${b.id}" min="1" max="${g.total}" value="${def}"><span class="small muted">${left ? `de ${left} que faltam` : 'questões (já fez todas: revisa as erradas primeiro)'}</span><button class="btn primary" data-cq="${b.id}">Começar</button></div>
+  </div>`;
+}
+let CR_OPEN = null, CR_EDIT = null; const CR_DAYS = new Set(); let CR_DAYS_SET = false;
 function pCrono(){
   const C = crData();
   const dates = Object.keys(C.days).sort();
@@ -2075,11 +2161,11 @@ function pCrono(){
     const qs = crQs(b), tips = crTips(b);
     return `<div class="cr-b${b.done ? ' done' : ''}${open ? ' open' : ''}" data-bid="${b.id}">
       <div class="cr-row"><button class="cr-ck" data-ck="${b.id}" aria-pressed="${b.done}" aria-label="Marcar como feito"></button>
-        <span class="cr-time num">${b.s}–${b.e}</span><span class="cr-ty ty-${b.ty}">${CR_TYPES[b.ty] || b.ty}</span><span class="cr-ti">${esc(b.ti)}</span></div>
+        <span class="cr-time num">${b.s}–${b.e}</span><span class="cr-ty ty-${b.ty}">${CR_TYPES[b.ty] || b.ty}</span><span class="cr-ti">${esc(b.ti)}</span>${qs.length && b.ty !== 'correcao' ? (g => g.done ? `<span class="cr-pg num" title="${g.done} de ${g.total} questões feitas · ${g.acc}% de acerto">${g.done}/${g.total}</span>` : '')(crProg(qs)) : ''}</div>
       ${open ? `<div class="cr-more">
         ${b.de ? `<p class="cr-de">${esc(b.de)}</p>` : ''}
+        ${qs.length ? crQPanel(b, qs) : ''}
         <div class="cr-acts">
-          ${qs.length ? `<button class="btn" data-cq="${b.id}">Questões deste tema <span class="faint num">${qs.length}</span></button>` : ''}
           ${(b.rv || []).filter(id => RV.T[id]).length ? `<button class="btn ghost" data-cr="${b.id}">Ver resumo</button>` : ''}
           ${tips.length ? `<button class="btn ghost" data-ctips="${b.id}">Dicas do tema <span class="faint num">${tips.length}</span></button>` : ''}
           <span style="flex:1"></span>
@@ -2090,10 +2176,14 @@ function pCrono(){
       </div>` : ''}
     </div>`;
   };
-  const dayHTML = d => `<div class="cr-day${d === td ? ' today' : ''}${d < td ? ' past' : ''}" id="day-${d}">
-      <div class="cr-dh"><span>${crDow(d)} ${fmtShort(d)}</span>${d === td ? '<span class="cr-today">hoje</span>' : ''}<span style="flex:1"></span><button class="icon-btn" data-cadd="${d}" title="Adicionar bloco" aria-label="Adicionar bloco">+</button></div>
-      ${(C.days[d] || []).slice().sort((a, b) => a.s < b.s ? -1 : 1).map(b => block(d, b)).join('') || '<div class="xs faint" style="padding:6px 0 4px">Livre</div>'}
-    </div>`;
+  const dayHTML = d => {
+    const bl = (C.days[d] || []).filter(b => b.ty !== 'pausa'), nd = bl.filter(b => b.done).length, all = bl.length && nd === bl.length;
+    const open = CR_DAYS.has(d) || (!CR_DAYS_SET && d === td) || (CR_EDIT && (C.days[d] || []).some(b => b.id === CR_EDIT));
+    return `<details class="cr-day${d === td ? ' today' : ''}${d < td ? ' past' : ''}${all ? ' alldone' : ''}" id="day-${d}" data-day="${d}"${open ? ' open' : ''}>
+      <summary class="cr-dh"><span class="cr-chev" aria-hidden="true"></span><span>${crDow(d)} ${fmtShort(d)}</span>${d === td ? '<span class="cr-today">hoje</span>' : ''}${all ? '<span class="cr-alldone">✓ dia concluído</span>' : ''}<span style="flex:1"></span>${bl.length && !all ? `<span class="faint small num">${nd}/${bl.length}</span>` : ''}<button class="icon-btn" data-cadd="${d}" title="Adicionar bloco" aria-label="Adicionar bloco">+</button></summary>
+      ${(C.days[d] || []).slice().sort((a, b) => a.s < b.s ? -1 : 1).map(b => block(d, b)).join('') || '<div class="xs faint" style="padding:6px 0 4px 22px">Livre</div>'}
+    </details>`;
+  };
   const weekHTML = (w, i) => {
     const ds = dates.filter(d => d >= w[0] && d <= w[1]);
     const bl = ds.flatMap(d => C.days[d].filter(b => b.ty !== 'pausa'));
@@ -2133,11 +2223,19 @@ function crBind(){
   }));
   document.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.ck); x.done = !x.done; save(); re(); });
   document.querySelectorAll('[data-ctips]').forEach(b => b.onclick = () => { const t = $('#tips-' + b.dataset.ctips); t.hidden = !t.hidden; });
-  document.querySelectorAll('[data-cq]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.cq); const qs = crQs(x); const first = qs.find(id => !S.ans[id]) || qs[0]; openQ(first, qs, 'Cronograma', () => go('crono')); });
+  document.querySelectorAll('[data-cq]').forEach(b => b.onclick = () => {
+    const [, x] = crFind(b.dataset.cq); const qs = crQs(x);
+    const n = Math.max(1, Math.min(qs.length, +($('#crn-' + x.id) || {}).value || 10));
+    const fresh = qs.filter(id => !S.ans[id]), wrong = qs.filter(id => S.ans[id] && status(id) === 'bad'), rest = qs.filter(id => S.ans[id] && status(id) !== 'bad');
+    const list = [...fresh, ...wrong, ...rest].slice(0, n);
+    CR_SESSION = {title: x.ti, ids: list, answered: []};
+    openQ(list[0], list, 'Cronograma', () => go('crono'), {k: 'livre'});
+  });
   document.querySelectorAll('[data-cr]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.cr); const id = x.rv.find(i => RV.T[i]); go('materias', {topic: id}); });
   document.querySelectorAll('[data-cedit]').forEach(b => b.onclick = () => { CR_EDIT = b.dataset.cedit; CR_OPEN = null; re(); const f = $('#ceTi'); if(f) f.focus(); });
   document.querySelectorAll('[data-cdel]').forEach(b => b.onclick = async () => { const [d, x] = crFind(b.dataset.cdel); const ok = await askChoice('Excluir este bloco?', esc(x.s + '–' + x.e + ' · ' + x.ti), [{label: 'Excluir', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ C.days[d] = C.days[d].filter(y => y.id !== x.id); save(); re(); } });
-  document.querySelectorAll('[data-cadd]').forEach(b => b.onclick = () => { const d = b.dataset.cadd; const nb = {id: uid8(), s: '19:30', e: '22:00', ty: 'aula', ti: '', de: '', rv: [], done: false}; (C.days[d] = C.days[d] || []).push(nb); CR_EDIT = nb.id; save(); re(); const f = $('#ceTi'); if(f) f.focus(); });
+  document.querySelectorAll('details.cr-day').forEach(el => el.addEventListener('toggle', () => { if(!CR_DAYS_SET){ CR_DAYS_SET = true; if(el.dataset.day !== today() && document.querySelector('#day-' + today() + '[open]')) CR_DAYS.add(today()); } if(el.open) CR_DAYS.add(el.dataset.day); else CR_DAYS.delete(el.dataset.day); }));
+  document.querySelectorAll('[data-cadd]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); CR_DAYS.add(b.dataset.cadd); const d = b.dataset.cadd; const nb = {id: uid8(), s: '19:30', e: '22:00', ty: 'aula', ti: '', de: '', rv: [], done: false}; (C.days[d] = C.days[d] || []).push(nb); CR_EDIT = nb.id; save(); re(); const f = $('#ceTi'); if(f) f.focus(); });
   const cancel = $('[data-ccancel]'); if(cancel) cancel.onclick = () => { const [d, x] = crFind(CR_EDIT); if(x && !x.ti){ C.days[d] = C.days[d].filter(y => y.id !== x.id); save(); } CR_EDIT = null; re(); };
   const sv = $('[data-csave]'); if(sv) sv.onclick = () => {
     const [d, x] = crFind(sv.dataset.csave); if(!x) return;
@@ -2151,6 +2249,21 @@ function crBind(){
   const rs = $('#crReset'); if(rs) rs.onclick = async () => { const ok = await askChoice('Restaurar o plano original?', 'Suas edições e marcações do cronograma serão substituídas pelo plano inicial.', [{label: 'Restaurar', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ S.crono = crBuild(); save(); CR_OPEN = CR_EDIT = null; re(); } };
   if(!crBind._scrolled){ crBind._scrolled = true; const t = document.getElementById('day-' + today()); if(t) setTimeout(() => t.scrollIntoView({block: 'start', behavior: 'smooth'}), 120); }
 }
+
+/* Início: questões feitas pelo cronograma (total e por matéria, recolhido) */
+function crStatsHTML(){
+  const by = new Map(); let n = 0, ok = 0;
+  for(const id in S.ans) for(const x of S.ans[id]) if(x.cr){ n++; if(x.ok) ok++; const g = by.get(x.cr) || {n: 0, ok: 0}; g.n++; if(x.ok) g.ok++; by.set(x.cr, g); }
+  if(!n) return '';
+  const rows = [...by.entries()].sort((a, b) => b[1].n - a[1].n);
+  return `<div class="hero hero2"><div>
+      <div class="eyebrow">Questões do cronograma</div>
+      <div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas</div></div><div class="hero-ok num">${n}<span> ${n === 1 ? 'feita' : 'feitas'} no total</span></div></div>
+      <p class="muted small" style="margin:12px 0 0">${pct(ok, n)}% de acerto nas questões feitas</p>
+      <details class="nb-group cr-stats"><summary><span class="nb-gt">Por matéria</span><span class="faint small num">${rows.length}</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(k, g.ok, g.n)).join('')}</div></details>
+    </div><div class="row" style="justify-content:flex-start"><button class="btn" data-go="crono">Abrir cronograma</button></div></div>`;
+}
+
 /* uma linha discreta no Início com o que está no cronograma de hoje */
 function crTodayLine(){
   const C = S.crono && S.crono.days ? S.crono : null;
@@ -2269,7 +2382,7 @@ function pCai(){
   $('#view').innerHTML = `<div class="page wide"><div class="head"><div><h1>O que mais cai</h1></div></div>
     <div class="tabs" role="tablist">${tabs.map(([k,t]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${esc(t)}</button>`).join('')}</div>${body}</div>`;
   document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go('cai', {tab: b.dataset.tab}));
-  document.querySelectorAll('[data-tema]').forEach(el => el.onclick = () => { const [a,m,t] = el.dataset.tema.split('.'); Object.assign(F, {ano:'', area:a, mat:m, tema:t, dif:'', st:'', txt:'', anul:false}); go('banco'); });
+  document.querySelectorAll('[data-tema]').forEach(el => el.onclick = () => { const [a,m,t] = el.dataset.tema.split('.'); Object.assign(F, {ano:'', area:a, mat:m, tema:'', temas:[a + '.' + m + '.' + t], dif:'', st:'', txt:'', anul:false}); go('banco'); });
 }
 
 /* ---------- Mais / Ajustes ---------- */
