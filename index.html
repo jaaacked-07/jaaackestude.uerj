@@ -2138,7 +2138,7 @@ function crProg(qs){ const done = qs.filter(id => S.ans[id] && S.ans[id].length)
 function crQPanel(b, qs){
   const g = crProg(qs), left = g.total - g.done, def = Math.min(10, left || g.total);
   return `<div class="cr-q">
-    <div class="cr-qh"><span>Questões deste tema <b class="num">${g.total}</b></span><span class="faint small num">${g.done ? `${g.done} feitas · ${g.ok} acertos (${g.acc}%)` : 'nenhuma feita ainda'}</span></div>
+    <div class="cr-qh"><span>Questões deste tema no banco UERJ <span class="faint">(2022–2026)</span>: <b class="num">${g.total}</b></span><span class="faint small num">${g.done ? `${g.done} feitas · ${g.ok} acertos (${g.acc}%)` : 'nenhuma feita ainda'}</span></div>
     <div class="cr-bar" title="${g.done} de ${g.total} feitas · ${g.ok} acertos"><i class="d" style="width:${pct(g.done, g.total)}%"></i><i class="o" style="width:${pct(g.ok, g.total)}%"></i></div>
     <div class="cr-qgo"><span class="small muted">Fazer</span><input type="number" class="cr-n" id="crn-${b.id}" min="1" max="${g.total}" value="${def}"><span class="small muted">${left ? `de ${left} que faltam` : 'questões (já fez todas: revisa as erradas primeiro)'}</span><button class="btn primary" data-cq="${b.id}">Começar</button></div>
   </div>`;
@@ -2250,17 +2250,26 @@ function crBind(){
   if(!crBind._scrolled){ crBind._scrolled = true; const t = document.getElementById('day-' + today()); if(t) setTimeout(() => t.scrollIntoView({block: 'start', behavior: 'smooth'}), 120); }
 }
 
-/* Início: questões feitas pelo cronograma (total e por matéria, recolhido) */
+/* Início: questões feitas dos temas do cronograma (desde 03/10), no total e por matéria (recolhido) */
+const CR_START = '2026-10-03';
 function crStatsHTML(){
+  const C = S.crono && S.crono.days ? S.crono : crBuild();
+  const owner = new Map();   /* questão → bloco do cronograma (o primeiro, em ordem de data) */
+  for(const d of Object.keys(C.days).sort()) for(const b of C.days[d]){ if(b.ty === 'pausa' || b.ty === 'correcao' || b.ty === 'simulado') continue; for(const q of crQs(b)) if(!owner.has(q)) owner.set(q, b.ti); }
   const by = new Map(); let n = 0, ok = 0;
-  for(const id in S.ans) for(const x of S.ans[id]) if(x.cr){ n++; if(x.ok) ok++; const g = by.get(x.cr) || {n: 0, ok: 0}; g.n++; if(x.ok) g.ok++; by.set(x.cr, g); }
-  if(!n) return '';
-  const rows = [...by.entries()].sort((a, b) => b[1].n - a[1].n);
+  for(const [q, ti] of owner){
+    const a = (S.ans[q] || []).filter(x => x.cr || (x.d >= CR_START && x.mode !== 'simulado'));
+    if(!a.length) continue;
+    const l = a[a.length - 1]; n++; if(l.ok) ok++;
+    const key = l.cr || ti, g = by.get(key) || {n: 0, ok: 0}; g.n++; if(l.ok) g.ok++; by.set(key, g);
+  }
+  const rows = [...by.entries()].sort((x, y) => y[1].n - x[1].n);
   return `<div class="hero hero2"><div>
       <div class="eyebrow">Questões do cronograma</div>
-      <div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas</div></div><div class="hero-ok num">${n}<span> ${n === 1 ? 'feita' : 'feitas'} no total</span></div></div>
+      ${n ? `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">${ok}<span>/${n}</span></div><div class="xs faint">acertos / feitas</div></div><div class="hero-ok num">${n}<span> ${n === 1 ? 'feita' : 'feitas'} no total</span></div></div>
       <p class="muted small" style="margin:12px 0 0">${pct(ok, n)}% de acerto nas questões feitas</p>
-      <details class="nb-group cr-stats"><summary><span class="nb-gt">Por matéria</span><span class="faint small num">${rows.length}</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(k, g.ok, g.n)).join('')}</div></details>
+      <details class="nb-group cr-stats"><summary><span class="nb-gt">Por matéria</span><span class="faint small num">${rows.length}</span></summary><div class="nb-gbody">${rows.map(([k, g]) => hbar(k, g.ok, g.n)).join('')}</div></details>`
+      : `<div class="hero-n"><div><div class="big num" style="margin:10px 0 4px">0</div><div class="xs faint">questões feitas</div></div></div><p class="muted small" style="margin:12px 0 0">As questões dos temas do cronograma aparecem aqui conforme você faz.</p>`}
     </div><div class="row" style="justify-content:flex-start"><button class="btn" data-go="crono">Abrir cronograma</button></div></div>`;
 }
 
