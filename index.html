@@ -212,7 +212,102 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 .hlbar button[hidden]{display:none}
 [hidden]{display:none!important}
 
-body.erasemode #view [data-mk], body.erasemode #view .stem, body.erasemode #view .ctx, body.erasemode #view .alt, body.erasemode #view .rv-body, body.erasemode #view .fb{cursor:cell}
+/* v17: cronograma */
+.cr-home{display:flex;flex-direction:column;gap:6px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+.cr-home .linkbtn{text-align:left;font-size:15px;color:var(--ink)}
+.cr-week .nb-gbody{padding-top:4px}
+.cr-wtip{font-size:13px;color:var(--ink-2);margin:2px 0 18px;line-height:1.55}
+.cr-wtip span{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-right:8px}
+.cr-day{padding:10px 0 12px;border-top:1px solid var(--line)}
+.cr-day:first-of-type{border-top:0}
+.cr-day.past .cr-row{opacity:.62}
+.cr-dh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:4px}
+.cr-day.today .cr-dh{color:var(--ink)}
+.cr-today{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:999px;padding:2px 8px}
+.cr-dh .icon-btn{font-size:18px;line-height:1;width:28px;height:28px}
+.cr-b{border-radius:10px;padding:2px 6px;margin:0 -6px;cursor:pointer}
+.cr-b:hover{background:var(--sunk)}
+.cr-b.open{background:var(--surface);box-shadow:0 0 0 1px var(--line);cursor:default;padding:4px 10px 10px;margin:4px -10px}
+.cr-row{display:flex;align-items:center;gap:10px;min-height:38px}
+.cr-ck{all:unset;cursor:pointer;flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line-2);display:grid;place-items:center;transition:background .15s, border-color .15s}
+.cr-ck[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.cr-ck[aria-pressed="true"]::after{content:"";width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.cr-time{flex:none;width:94px;font-size:13px;color:var(--ink-2)}
+.cr-ty{flex:none;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;width:76px}
+.ty-aula{color:var(--accent)} .ty-releitura{color:var(--ok)} .ty-questoes{color:#B5651D} .ty-correcao{color:var(--ink-3)} .ty-simulado{color:var(--bad)}
+:root[data-theme="dark"] .ty-questoes{color:#E0A060}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ty-questoes{color:#E0A060} }
+.cr-ti{flex:1;min-width:0;font-size:14.5px;line-height:1.4}
+.cr-b.done .cr-ti{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+.cr-pause{display:flex;align-items:center;gap:10px;min-height:30px;font-size:13px;padding-left:34px;cursor:default}
+.cr-pause:hover{background:transparent}
+.cr-mini{opacity:0;width:24px;height:24px}
+.cr-pause:hover .cr-mini{opacity:1}
+.cr-more{padding:4px 0 0 28px}
+.cr-de{font-size:14px;line-height:1.6;color:var(--ink-2);margin:2px 0 12px}
+.cr-acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cr-acts .btn{padding:7px 12px;font-size:13px}
+.cr-tips{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.cr-tip{display:grid;grid-template-columns:92px 1fr;gap:10px;font-size:13.5px;line-height:1.5;background:var(--sunk);border-radius:9px;padding:8px 12px}
+.cr-mtip{padding:10px 0;border-top:1px solid var(--line)}
+.cr-mtip:first-child{border-top:0}
+.cr-mtip p{margin:4px 0 0}
+.cr-b.editing{cursor:default;background:var(--surface);box-shadow:0 0 0 1px var(--line-2);padding:12px;margin:6px -10px}
+.cr-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cr-form .cr-wide{grid-column:1 / -1}
+.cr-form textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14px;border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;background:var(--surface);color:var(--ink);resize:vertical}
+@media (max-width: 600px){
+  .cr-form{grid-template-columns:1fr 1fr}
+  .cr-row{flex-wrap:wrap;gap:4px 10px;padding:6px 0}
+  .cr-time{width:auto}
+  .cr-ty{width:auto}
+  .cr-ti{flex-basis:100%;padding-left:28px}
+  .cr-more{padding-left:0}
+  .cr-tip{grid-template-columns:1fr;gap:2px}
+}
+
+
+/* v16: menu lateral recolhível, janelas, simulados */
+.menu-btn,.side-x,.side-bd{display:none}
+@media (max-width: 900px){
+  .mob{display:none!important}
+  .side{display:flex;position:fixed;left:0;top:0;bottom:0;width:248px;z-index:60;transform:translateX(-104%);transition:transform .22s ease;box-shadow:0 0 0 1px var(--line),8px 0 30px rgba(0,0,0,.08);overflow-y:auto;padding-top:22px}
+  body.nav-open .side{transform:none}
+  .side-x{display:grid;place-items:center;position:absolute;right:10px;top:14px;width:34px;height:34px;border-radius:9px;border:0;background:transparent;color:var(--ink-2);cursor:pointer}
+  .side-x:hover{background:var(--sunk)}
+  .menu-btn{display:grid;place-items:center;position:fixed;left:10px;top:calc(10px + env(safe-area-inset-top));z-index:50;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb, var(--surface) 92%, transparent);backdrop-filter:blur(8px);color:var(--ink);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  body.nav-open .menu-btn{opacity:0;pointer-events:none}
+  .side-bd{position:fixed;inset:0;z-index:55;background:rgba(10,12,16,.28)}
+  body.nav-open .side-bd{display:block}
+  .mtop{padding-left:62px!important}
+  .page{padding-bottom:48px!important}
+  .tb-float{left:58px!important}
+}
+@media (min-width: 700px) and (max-width: 900px){
+  body.nav-open .side-bd{display:none}
+  body.nav-open .app{padding-left:248px}
+  body.nav-open .tb-float{left:calc(248px + 12px)!important}
+}
+.mdl-bd{position:fixed;inset:0;z-index:90;background:rgba(10,12,16,.32);display:grid;place-items:center;padding:16px;animation:tbIn .15s ease-out}
+.mdl{background:var(--surface);border-radius:16px;padding:22px 22px 18px;width:min(420px,100%);box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.mdl h3{margin:0 0 6px;font-size:19px}
+.mdl-opts{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.mdl-opts.row{flex-direction:row;justify-content:flex-end}
+.mdl-opts .btn{text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.mdl-opts.row .btn{align-items:center}
+.mdl-opts .btn .xs{opacity:.7;font-weight:400}
+.mdl-opts .danger{color:var(--bad)!important}
+.mdl-in{width:100%;box-sizing:border-box;margin-top:10px}
+.sim-row{align-items:center;gap:10px}
+.sim-row .t{flex:1;min-width:0;cursor:pointer}
+.sim-act{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.icon-btn{all:unset;cursor:pointer;width:30px;height:30px;display:inline-grid;place-items:center;border-radius:8px;color:var(--ink-3)}
+.icon-btn:hover{background:var(--sunk);color:var(--ink)}
+.sim-name{margin:-12px 0 14px}
+.sim-name .linkbtn{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3)}
+
+
+body.erasemode #view [data-mk], body.erasemode #view .stem, body.erasemode #view .ctx, body.erasemode #view .alt{cursor:cell}
 .er-ring{position:fixed;z-index:80;border-radius:50%;border:1.5px solid var(--ink-2);background:color-mix(in srgb, var(--surface) 40%, transparent);pointer-events:none}
 .tbx .tb[data-tool="eraser"][aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 
@@ -310,7 +405,8 @@ body.txtmode #view .tn{cursor:pointer}
 .ink-ov path{stroke:none;opacity:.92}
 .ink-ov{color:var(--ink)}
 
-body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .rv-body, body.penmode #view .fb{cursor:crosshair;user-select:none;-webkit-user-select:none;touch-action:none}
+body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .key, body.penmode #view p:has(> span[data-mk]){cursor:crosshair;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+@media (pointer: coarse){ body.hlmode #view [data-mk], body.hlmode #view .stem, body.hlmode #view .ctx{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none} }
 .rv-mk{display:block;position:relative}
 
 
@@ -480,7 +576,7 @@ body.hlmode #view ::selection{background:rgba(255,213,79,.55);color:inherit}
 
 @media (max-width: 900px){
   .app{grid-template-columns:1fr}
-  .side{display:none}
+  .side{}
   .mob{display:flex;position:fixed;bottom:0;left:0;right:0;background:color-mix(in srgb, var(--bg) 94%, transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:40;padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
   .mob button{all:unset;cursor:pointer;font-size:11.5px;color:var(--ink-3);padding:6px 8px;text-align:center;flex:1}
   .mob button[aria-current="page"]{color:var(--ink);font-weight:600}
@@ -517,7 +613,10 @@ body.hlmode #view ::selection{background:rgba(255,213,79,.55);color:inherit}
   </form>
 </div>
 <div class="app" id="app" hidden>
-  <aside class="side">
+  <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="side-bd" id="sideBd"></div>
+  <aside class="side" id="side">
+    <button class="side-x" id="sideX" aria-label="Fechar menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
     <div class="brand">Banco UERJ<small>Residência médica · 2022–2026</small></div>
     <div class="who" id="whoS"></div>
     <nav class="nav" id="nav"></nav>
@@ -571,7 +670,7 @@ const WHY = ['Não sabia o conteúdo','Confundi conceitos','Li com pressa','Caí
 
 /* ---------- state ---------- */
 let S = blank();
-function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, tnotes:{}, ink:{}, set:{exam:'', theme:''}, cur:{}, mt:0}; }
+function blank(){ return {ans:{}, fav:{}, notes:{}, days:{}, sims:[], srs:{}, nsrs:{}, marks:{}, tnotes:{}, ink:{}, simPaused:[], simDel:[], ansDel:{}, crono:null, set:{exam:'', theme:''}, cur:{}, mt:0}; }
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, v); return true; }catch(e){ return false; } }
 function load(){ try{ const s = JSON.parse(lsGet(SKEY)); if(s && s.ans) return Object.assign(blank(), s); }catch(e){} return blank(); }
@@ -583,9 +682,10 @@ function merge(a, b){
   a = Object.assign(blank(), a || {}); b = Object.assign(blank(), b || {});
   const newer = (a.mt || 0) >= (b.mt || 0) ? a : b;
   const o = blank();
-  for(const src of [a, b]) for(const id in src.ans){ const arr = o.ans[id] = o.ans[id] || []; for(const x of src.ans[id]) if(!arr.some(y => y.t === x.t)) arr.push(x); }
+  for(const src of [a, b]) for(const id in (src.ansDel || {})){ const t = o.ansDel[id] = o.ansDel[id] || []; for(const x of src.ansDel[id]) if(!t.includes(x)) t.push(x); }
+  for(const src of [a, b]) for(const id in src.ans){ const del = o.ansDel[id] || []; for(const x of src.ans[id]){ if(del.includes(x.t)) continue; const arr = o.ans[id] = o.ans[id] || []; if(!arr.some(y => y.t === x.t)) arr.push(x); } }
   for(const id in o.ans) o.ans[id].sort((x, y) => x.t - y.t);
-  for(const k of ['fav','notes','srs','nsrs','marks','tnotes','ink','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
+  for(const k of ['fav','notes','srs','nsrs','marks','tnotes','ink','simPaused','crono','set','cur']) o[k] = JSON.parse(JSON.stringify(newer[k] || blank()[k]));
   const dates = new Set([...Object.keys(a.days), ...Object.keys(b.days)]);
   for(const d of dates){
     const x = a.days[d], y = b.days[d];
@@ -594,8 +694,10 @@ function merge(a, b){
     const res = Object.assign({}, x.res, y.res);
     o.days[d] = {ids: base.ids.slice(), res: Object.fromEntries(Object.entries(res).filter(([id]) => base.ids.includes(id)))};
   }
-  const seen = new Set();
-  for(const s of [...a.sims, ...b.sims]){ const k = s.date + '|' + s.ids.join(','); if(!seen.has(k)){ seen.add(k); o.sims.push(s); } }
+  o.simDel = [...new Set([...(a.simDel || []), ...(b.simDel || [])])];
+  const key = s => s.date + '|' + s.ids.join(','), nv = new Map((newer.sims || []).map(s => [key(s), s]));
+  const seen = new Set(o.simDel);
+  for(const s of [...a.sims, ...b.sims]){ const k = key(s); if(!seen.has(k)){ seen.add(k); o.sims.push(JSON.parse(JSON.stringify(nv.get(k) || s))); } }
   o.mt = Math.max(a.mt || 0, b.mt || 0);
   return o;
 }
@@ -709,7 +811,8 @@ function groupAcc(keyFn){
   return m;
 }
 
-/* ---------- daily 30 ---------- */
+/* ---------- questões do dia (20) ---------- */
+const DAY_N = 20;
 function priorityWeight(q){ const m = mat(q), t = tema(q); return m.nivel + (t.prio ? 1.5 : 0) + t.qtd*0.3; }
 function buildDay(date){
   const pool = Q.filter(valid);
@@ -720,7 +823,7 @@ function buildDay(date){
   // até 5 revisões espaçadas vencidas entram no dia (o resto vai para a aba Revisão)
   pick.push(...shuffle(due.slice(), seed).slice(0, Math.min(5, due.length)));
   // inéditas, equilibrando especialidades como na prova e priorizando o que mais cai
-  const need = 30 - pick.length;
+  const need = DAY_N - pick.length;
   if(unseen.length){
     const byArea = {}; for(const q of unseen){ (byArea[q.a] = byArea[q.a] || []).push(q); }
     for(const k in byArea) byArea[k] = shuffle(byArea[k], seed + +k).sort((a,b) => priorityWeight(b) - priorityWeight(a) + (((hash(a.id+date)%7) - (hash(b.id+date)%7)) * 0.35));
@@ -733,23 +836,26 @@ function buildDay(date){
     pick.push(...chosen.slice(0, need).map(q => q.id));
   }
   // banco inédito esgotado: erros e as mais antigas
-  if(pick.length < 30){
+  if(pick.length < DAY_N){
     const seen = pool.filter(q => S.ans[q.id] && !pick.includes(q.id));
     seen.sort((a,b) => (status(a.id)==='bad'? -1:0) - (status(b.id)==='bad'? -1:0) || last(a.id).t - last(b.id).t);
-    pick.push(...seen.slice(0, 30 - pick.length).map(q => q.id));
+    pick.push(...seen.slice(0, DAY_N - pick.length).map(q => q.id));
   }
   return shuffle(pick, seed+7);
 }
 function getDay(date){
   date = date || today();
   if(!S.days[date]){ S.days[date] = {ids: buildDay(date), res:{}}; save(); }
-  return S.days[date];
+  const d = S.days[date];
+  /* dias criados quando eram 30: hoje passa a ter 20 (mantendo as já respondidas) */
+  if(date >= today() && d.ids.length > DAY_N){ const keep = []; let free = DAY_N - d.ids.filter(id => d.res[id]).length; for(const id of d.ids){ if(d.res[id]) keep.push(id); else if(free > 0){ keep.push(id); free--; } } if(keep.length < d.ids.length){ d.ids = keep; save(); } }
+  return d;
 }
 function dayStats(d){ const ids = Object.keys(d.res); const ok = ids.filter(i => d.res[i].ok).length; return {n: ids.length, ok, bad: ids.length - ok, acc: pct(ok, ids.length)}; }
 
 /* ---------- router ---------- */
 const NAV = [
-  ['inicio','Início'], ['hoje','30 do dia'], ['banco','Questões'], ['simulado','Simulado'],
+  ['inicio','Início'], ['hoje','Questões do dia'], ['crono','Cronograma'], ['banco','Questões'], ['simulado','Simulado'],
   ['revisao','Revisão'], ['caderno','Caderno de Erros'], ['materias','Matérias'], ['graficos','Meus gráficos'], ['cai','O que mais cai']
 ];
 let route = {page:'inicio'};
@@ -758,7 +864,7 @@ function renderNav(){
   const dueN = Object.values(S.srs).filter(s => s.due <= today()).length;
   const d = S.days[today()]; const done = d ? Object.keys(d.res).length : 0;
   const dueT = dueN + noteDue().length;
-  const badge = {hoje: done+'/30', revisao: dueT ? String(dueT) : '', caderno: noteIds().length ? String(noteIds().length) : ''};
+  const badge = {hoje: done + '/' + (d ? d.ids.length : DAY_N), revisao: dueT ? String(dueT) : '', caderno: noteIds().length ? String(noteIds().length) : ''};
   $('#nav').innerHTML = NAV.map(([k,t]) => `<button data-go="${k}" ${route.page===k?'aria-current="page"':''}>${t}<span class="badge num">${badge[k]||''}</span></button>`).join('');
   const mobNav = [['inicio','Início'],['hoje','Hoje'],['banco','Questões'],['revisao','Revisão'],['graficos','Gráficos'],['mais','Mais']];
   $('#mob').innerHTML = mobNav.map(([k,t]) => `<button data-go="${k}" ${(route.page===k || (k==='mais' && ['simulado','cai','ajustes','mais','caderno','materias'].includes(route.page)))?'aria-current="page"':''}>${t}</button>`).join('');
@@ -768,7 +874,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-go]'
 function render(){
   renderNav();
   stopTimer();
-  const P = {inicio: pInicio, hoje: pHoje, banco: pBanco, q: pQuestao, simulado: pSimulado, revisao: pRevisao, graficos: pGraficos, cai: pCai, ajustes: pAjustes, mais: pMais, dia: pDia, simres: pSimRes, caderno: pCaderno, materias: pMaterias, noterun: () => go('revisao', {tab: 'notas'})};
+  const P = {inicio: pInicio, hoje: pHoje, banco: pBanco, q: pQuestao, simulado: pSimulado, revisao: pRevisao, graficos: pGraficos, cai: pCai, ajustes: pAjustes, mais: pMais, dia: pDia, simres: pSimRes, crono: pCrono, caderno: pCaderno, materias: pMaterias, noterun: () => go('revisao', {tab: 'notas'})};
   (P[route.page] || pInicio)();
 }
 
@@ -777,7 +883,7 @@ function mentorTips(){
   const tips = [];
   const s = summary();
   const dueN = Object.values(S.srs).filter(x => x.due <= today()).length;
-  if(!s.answered){ tips.push(['Comece pelas 30 do dia.', 'Elas já vêm equilibradas entre as especialidades na proporção da prova e priorizam os temas que a UERJ mais repete. Responda sem consultar nada: o erro de hoje é o acerto da prova.']); return tips; }
+  if(!s.answered){ tips.push(['Comece pelas questões do dia.', 'Elas já vêm equilibradas entre as especialidades na proporção da prova e priorizam os temas que a UERJ mais repete. Responda sem consultar nada: o erro de hoje é o acerto da prova.']); return tips; }
   if(dueN) tips.push([`${dueN} ${dueN>1?'questões voltam':'questão volta'} para revisão hoje.`, 'São erros e chutes do passado, reprogramados em 1, 3, 7, 15 e 30 dias. Revisar no dia certo é o que transforma erro em memória de longo prazo.']);
   const byArea = groupAcc(q => q.a); let worst = null;
   byArea.forEach((g,k) => { if(g.n >= 6 && (!worst || g.ok/g.n < worst.r)) worst = {k, r: g.ok/g.n, n: g.n}; });
@@ -786,7 +892,7 @@ function mentorTips(){
   if(chutes.length >= 5) tips.push([`${chOk} de ${chutes.length} chutes deram certo.`, 'Acerto no chute não é conhecimento. Esses itens continuam na sua revisão até você acertar com certeza.']);
   const secs = allAttempts(a => a.sec > 0).map(a => a.sec);
   if(secs.length >= 20){ const avg = secs.reduce((a,b)=>a+b,0)/secs.length; if(avg > 180) tips.push([`Seu tempo médio é ${Math.round(avg)} s por questão.`, 'Na UERJ você terá 5 horas para 100 questões: 3 minutos cada, já contando o cartão. Treine um simulado cronometrado por semana.']); }
-  if(S.set.exam){ const days = Math.round((new Date(S.set.exam+'T12:00:00') - new Date(today()+'T12:00:00'))/864e5); if(days >= 0){ const left = Q.filter(q => valid(q) && !S.ans[q.id]).length; tips.push([`Faltam ${days} dias para a prova.`, left ? `Ainda há ${left} questões inéditas. No ritmo de 30 por dia, você termina o banco em ${Math.ceil(left/30)} dias${Math.ceil(left/30) > days ? ': considere dois blocos em alguns dias' : ''}.` : 'Você já passou por todo o banco. Agora o foco é revisão de erros e simulados completos.']); } }
+  if(S.set.exam){ const days = Math.round((new Date(S.set.exam+'T12:00:00') - new Date(today()+'T12:00:00'))/864e5); if(days >= 0){ const left = Q.filter(q => valid(q) && !S.ans[q.id]).length; tips.push([`Faltam ${days} dias para a prova.`, left ? `Ainda há ${left} questões inéditas. No ritmo de ${DAY_N} por dia, você termina o banco em ${Math.ceil(left/DAY_N)} dias${Math.ceil(left/DAY_N) > days ? ': considere dois blocos em alguns dias' : ''}.` : 'Você já passou por todo o banco. Agora o foco é revisão de erros e simulados completos.']); } }
   return tips.slice(0,3);
 }
 function pInicio(){
@@ -800,7 +906,7 @@ function pInicio(){
     <div class="head"><div><div class="eyebrow">${new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'})}</div><h1>${hi}, ${esc(displayName())}.</h1><div class="xs faint sync-home"><span class="sync-dot"></span><span id="syncHome">${esc(Cloud.label())}</span></div></div></div>
     <div class="hero">
       <div>
-        <div class="eyebrow">30 questões de hoje</div>
+        <div class="eyebrow">${d.ids.length} questões de hoje</div>
         <div class="hero-n"><div class="big num" style="margin:10px 0 18px">${ds.n}<span>/${d.ids.length}</span></div>${ds.n ? `<div class="hero-ok num" title="Acertos nas questões de hoje">${ds.ok}<span>/${d.ids.length} acertos</span></div>` : ''}</div>
         <div class="bar"><i style="width:${pct(ds.n, d.ids.length)}%"></i></div>
         <p class="muted small" style="margin:12px 0 0">${doneAll ? `Concluídas, com ${ds.acc}% de acerto.` : ds.n ? `${ds.acc}% de acerto até aqui.` : 'Selecionadas do banco UERJ, priorizando questões que você ainda não fez.'}</p>
@@ -809,6 +915,7 @@ function pInicio(){
         ${doneAll ? `<button class="btn primary" data-go="dia">Ver resultado do dia</button><button class="btn" data-go="revisao">Ir para a revisão</button>` : `<button class="btn primary" data-go="hoje">${ds.n ? 'Continuar' : 'Começar'}</button>`}
       </div>
     </div>
+    ${crTodayLine()}
     <div class="section" style="margin-top:44px"><div class="stats">
       <div class="stat"><b class="num">${Q.length}</b><span>questões no banco · ${Q.length - validN} anuladas</span></div>
       <div class="stat"><b class="num">${s.ok}<span class="faint" style="font-size:20px"> / ${s.answered}</span></b><span>acertos / respondidas</span></div>
@@ -1152,14 +1259,62 @@ function pBanco(){
 
 /* ---------- Simulado ---------- */
 let SIM = null;
+const uid8 = () => Math.random().toString(36).slice(2, 10);
+function simName(s, j){ return s.name || ('Simulado ' + ((j != null ? j : S.sims.indexOf(s)) + 1)); }
+/* janelas simples no estilo do app (sem pop-up do navegador) */
+function modal(html){
+  const bd = document.createElement('div'); bd.className = 'mdl-bd';
+  bd.innerHTML = `<div class="mdl" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(bd);
+  return bd;
+}
+function askChoice(title, text, opts){
+  return new Promise(res => {
+    const bd = modal(`<h3>${esc(title)}</h3>${text ? `<p class="muted small">${text}</p>` : ''}<div class="mdl-opts">${opts.map((o, i) => `<button class="btn ${o.primary ? 'primary' : o.danger ? 'ghost danger' : ''}" data-i="${i}">${esc(o.label)}${o.sub ? `<span class="xs">${esc(o.sub)}</span>` : ''}</button>`).join('')}</div>`);
+    bd.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if(b){ bd.remove(); res(opts[+b.dataset.i].value); } else if(e.target === bd){ bd.remove(); res(null); } });
+  });
+}
+function askText(title, value){
+  return new Promise(res => {
+    const bd = modal(`<h3>${esc(title)}</h3><input type="text" class="mdl-in" value="${esc(value || '')}" maxlength="60"><div class="mdl-opts row"><button class="btn ghost" data-x>Cancelar</button><button class="btn primary" data-ok>Salvar</button></div>`);
+    const inp = bd.querySelector('input'); setTimeout(() => { inp.focus(); inp.select(); }, 30);
+    const done = v => { bd.remove(); res(v); };
+    bd.querySelector('[data-ok]').onclick = () => done(inp.value.trim() || null);
+    bd.querySelector('[data-x]').onclick = () => done(null);
+    inp.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Enter') done(inp.value.trim() || null); if(e.key === 'Escape') done(null); });
+    bd.addEventListener('click', e => { if(e.target === bd) done(null); });
+  });
+}
+const PEN_I = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
+const TRASH_I = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>';
+function simRowHTML(s, j){
+  return `<div class="li sim-row"><div class="t click" data-sim="${j}"><div>${esc(simName(s, j))}</div><div class="xs faint">${fmtD(s.date)} · ${s.ids.length} questões · ${esc(s.label)}</div></div>
+    <div class="num">${s.acc}%</div><div class="sim-act"><button class="icon-btn" data-ren="${j}" title="Renomear" aria-label="Renomear">${PEN_I}</button><button class="icon-btn" data-del="${j}" title="Excluir" aria-label="Excluir">${TRASH_I}</button></div></div>`;
+}
+function pausedRowHTML(p, j){
+  const n = Object.keys(p.ch).length, dn = Object.keys(p.done || {}).length;
+  return `<div class="li sim-row"><div class="t"><div>${esc(p.name)} <span class="tag">pausado</span></div><div class="xs faint">${fmtD(p.date)} · ${n} de ${p.ids.length} respondidas${dn ? ` · ${dn} já corrigidas (${p.okDone || 0} acertos)` : ' · ainda sem correção'}</div></div>
+    <div class="sim-act"><button class="btn primary" data-pres="${j}">Continuar</button>${n > dn ? `<button class="btn" data-pcor="${j}">Corrigir feitas</button>` : ''}<button class="icon-btn" data-pren="${j}" title="Renomear" aria-label="Renomear">${PEN_I}</button><button class="icon-btn" data-pdel="${j}" title="Excluir" aria-label="Excluir">${TRASH_I}</button></div></div>`;
+}
+function bindSimLists(back){
+  document.querySelectorAll('[data-sim]').forEach(el => el.onclick = () => go('simres', {k: +el.dataset.sim}));
+  document.querySelectorAll('[data-ren]').forEach(b => b.onclick = async () => { const s = S.sims[+b.dataset.ren]; const v = await askText('Nome do simulado', simName(s)); if(v){ s.name = v; save(); back(); } });
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const j = +b.dataset.del, s = S.sims[j]; const ok = await askChoice('Excluir "' + simName(s, j) + '"?', 'As respostas deste simulado saem do seu histórico, das estatísticas e da revisão. Não dá para desfazer.', [{label: 'Excluir', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ deleteSim(j); toast('Simulado excluído.'); back(); } });
+  document.querySelectorAll('[data-pres]').forEach(b => b.onclick = () => resumeSim(+b.dataset.pres));
+  document.querySelectorAll('[data-pcor]').forEach(b => b.onclick = () => { const p = S.simPaused[+b.dataset.pcor]; correctDone(p); save(); toast('Questões respondidas corrigidas e salvas no histórico.'); back(); });
+  document.querySelectorAll('[data-pren]').forEach(b => b.onclick = async () => { const p = S.simPaused[+b.dataset.pren]; const v = await askText('Nome do simulado', p.name); if(v){ p.name = v; save(); back(); } });
+  document.querySelectorAll('[data-pdel]').forEach(b => b.onclick = async () => { const j = +b.dataset.pdel, p = S.simPaused[j]; const ok = await askChoice('Excluir "' + p.name + '"?', Object.keys(p.done || {}).length ? 'As questões que já foram corrigidas também saem do seu histórico.' : 'Ele ainda não foi corrigido, então nada muda no seu histórico.', [{label: 'Excluir', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ removeAnsOfSim(p.id); S.simPaused.splice(j, 1); save(); toast('Simulado excluído.'); back(); } });
+}
 function pSimulado(){
   const cfg = S.cur.simcfg || {n: 20, ano:'', area:'', mat:'', tema:'', only:'todas', timer:true};
   const mats = cfg.area==='' ? [] : A.areas[cfg.area].materias.map((m,i) => [i, m.nome]);
   const temas = cfg.area==='' || cfg.mat==='' ? [] : A.areas[cfg.area].materias[cfg.mat].temas.map((t,i) => [i, t.tema]);
   const opts = (arr, v) => arr.map(([k,t]) => `<option value="${k}" ${String(v)===String(k)?'selected':''}>${esc(t)}</option>`).join('');
   const pool = simPool(cfg);
+  S.simPaused = S.simPaused || [];
   $('#view').innerHTML = `<div class="page">
-    <div class="head"><div><h1>Simulado</h1><p class="muted">Monte uma prova no formato UERJ: sem gabarito até o fim e com o tempo da prova real (3 minutos por questão).</p></div></div>
+    <div class="head"><div><h1>Simulado</h1><p class="muted">Monte uma prova no formato UERJ: sem gabarito até o fim e com o tempo da prova real (3 minutos por questão). Dá para pausar e continuar depois.</p></div></div>
+    ${S.simPaused.length ? `<div class="section" style="margin-top:0"><h3>Em andamento</h3><div class="list">${S.simPaused.map(pausedRowHTML).join('')}</div></div>` : ''}
     <div class="filters" style="grid-template-columns:repeat(3,minmax(0,1fr))">
       <label class="f">Quantidade<select id="sN">${opts([[10,'10 questões'],[20,'20 questões'],[30,'30 questões'],[50,'50 questões'],[100,'100 questões (prova completa)']], cfg.n)}</select></label>
       <label class="f">Ano<select id="sAno"><option value="">Todos</option>${opts([2026,2025,2024,2023,2022].map(y=>[y,y]), cfg.ano)}</select></label>
@@ -1171,12 +1326,12 @@ function pSimulado(){
     <label class="small muted row" style="gap:8px;margin:6px 0 26px"><input type="checkbox" id="sTimer" ${cfg.timer?'checked':''}> Cronometrar (3 min por questão)</label>
     <div class="spread"><span class="muted small">${pool.length} questões disponíveis com esses critérios${pool.length < cfg.n ? ` · o simulado terá ${pool.length}` : ''}</span>
       <button class="btn primary" id="sGo" ${pool.length?'':'disabled'}>Iniciar simulado</button></div>
-    ${S.sims.length ? `<div class="section"><h3>Simulados anteriores</h3><div class="list">${S.sims.slice().reverse().map((s,j) => `<div class="li click" data-sim="${S.sims.length-1-j}"><div class="t"><div>${fmtD(s.date)} · ${s.ids.length} questões</div><div class="xs faint">${esc(s.label)}</div></div><div class="num">${s.acc}%</div></div>`).join('')}</div></div>` : ''}
+    ${S.sims.length ? `<div class="section"><h3>Simulados anteriores</h3><div class="list">${S.sims.map((s,j)=>[s,j]).reverse().map(([s,j]) => simRowHTML(s, j)).join('')}</div></div>` : ''}
   </div>`;
   const upd = (k, reset) => e => { cfg[k] = e.target.type==='checkbox' ? e.target.checked : (k==='n' ? +e.target.value : e.target.value); (reset||[]).forEach(r => cfg[r]=''); S.cur.simcfg = cfg; save(); pSimulado(); };
   $('#sN').onchange = upd('n'); $('#sAno').onchange = upd('ano'); $('#sOnly').onchange = upd('only'); $('#sArea').onchange = upd('area',['mat','tema']); $('#sMat').onchange = upd('mat',['tema']); $('#sTema').onchange = upd('tema'); $('#sTimer').onchange = upd('timer');
   $('#sGo').onclick = () => startSim(cfg, pool);
-  document.querySelectorAll('[data-sim]').forEach(el => el.onclick = () => go('simres', {k: +el.dataset.sim}));
+  bindSimLists(pSimulado);
 }
 function simPool(c){
   return Q.filter(q => valid(q) && (!c.ano || q.y == c.ano) && (c.area==='' || q.a == c.area) && (c.mat==='' || q.m == c.mat) && (c.tema==='' || q.t == c.tema)
@@ -1192,8 +1347,60 @@ function startSim(cfg, pool){
     ids = ids.slice(0, cfg.n).sort((x,y) => QI[x].a - QI[y].a);
   } else ids = shuffle(pool.map(q => q.id)).slice(0, cfg.n);
   const lab = [cfg.ano||'Todos os anos', cfg.area===''?'Todas as especialidades':A.areas[cfg.area].label, cfg.mat===''?'':A.areas[cfg.area].materias[cfg.mat].nome, cfg.tema===''?'':A.areas[cfg.area].materias[cfg.mat].temas[cfg.tema].tema].filter(Boolean).join(' · ');
-  SIM = {ids, ch:{}, i:0, start: Date.now(), limit: cfg.timer ? ids.length*180 : 0, label: lab, qStart: Date.now(), sec:{}};
+  const nth = S.sims.length + (S.simPaused || []).length + 1;
+  SIM = {id: uid8(), name: 'Simulado ' + nth, date: today(), ids, ch:{}, i:0, start: Date.now(), limit: cfg.timer ? ids.length*180 : 0, label: lab, qStart: Date.now(), sec:{}, done:{}, okDone: 0};
   go('simrun');
+}
+/* corrige as questões já respondidas (vão para o histórico, marcadas com o id do simulado) */
+function correctDone(sim){
+  sim.done = sim.done || {}; sim.okDone = sim.okDone || 0;
+  for(const id of sim.ids){
+    const ch = sim.ch[id]; if(!ch || sim.done[id]) continue;
+    if(record(id, ch, '', sim.sec[id] || 0, 'simulado')) sim.okDone++;
+    const a = S.ans[id]; a[a.length - 1].sim = sim.id;
+    sim.done[id] = 1;
+  }
+}
+function pauseRecord(){
+  const used = Math.round((Date.now() - SIM.start) / 1000);
+  return {id: SIM.id, name: SIM.name, date: SIM.date, label: SIM.label, ids: SIM.ids, ch: SIM.ch, i: SIM.i, sec: SIM.sec, used, limit: SIM.limit, done: SIM.done, okDone: SIM.okDone};
+}
+function resumeSim(j){
+  const p = S.simPaused.splice(j, 1)[0]; save();
+  SIM = Object.assign({}, p, {start: Date.now() - (p.used || 0) * 1000, qStart: Date.now()});
+  delete SIM.used;
+  go('simrun');
+}
+function removeAnsOfSim(simId, legacy){
+  const affected = new Set(); S.ansDel = S.ansDel || {};
+  for(const id of Object.keys(S.ans)){
+    const keep = [];
+    for(const x of S.ans[id]){
+      const hit = x.sim === simId || (legacy && !x.sim && legacy.ids.includes(id) && x.mode === 'simulado' && x.d === legacy.date && (x.ch === (legacy.ch[id] || '—')));
+      if(hit){ (S.ansDel[id] = S.ansDel[id] || []).push(x.t); affected.add(id); } else keep.push(x);
+    }
+    if(keep.length) S.ans[id] = keep; else delete S.ans[id];
+  }
+  /* revisão espaçada: sem nenhuma resposta restante, a questão sai da revisão; senão, volta ao estado da última resposta */
+  for(const id of affected){
+    const a = S.ans[id];
+    if(!a){ delete S.srs[id]; continue; }
+    const l = a[a.length - 1];
+    if(!l.ok || l.conf === 'chute'){ if(!S.srs[id]) S.srs[id] = {step: 0, due: addDays(today(), SRS_STEPS[0])}; }
+  }
+}
+function deleteSim(j){
+  const s = S.sims[j];
+  removeAnsOfSim(s.id || '__none__', s);
+  S.simDel = S.simDel || []; S.simDel.push(s.date + '|' + s.ids.join(','));
+  S.sims.splice(j, 1);
+  /* anotações feitas neste simulado viram "Estudo livre"; as dos seguintes continuam apontando certo */
+  for(const n of Object.values(S.notes)) for(const p of [n, ...(n.more || [])]){
+    if(!p || !p.src || p.src.k !== 'sim') continue;
+    if((s.id && p.src.id === s.id) || (!p.src.id && p.src.n === j)) p.src = {k: 'livre'};
+    else if(!p.src.id && p.src.n > j) p.src.n--;
+  }
+  save();
 }
 function pSimRun(){
   if(!SIM){ go('simulado'); return; }
@@ -1202,7 +1409,8 @@ function pSimRun(){
   const answered = Object.keys(SIM.ch).length;
   SIM.qStart = Date.now();
   $('#view').innerHTML = `<div class="page">
-    <div class="progress"><button class="btn ghost" id="simQuit">Sair</button><div class="bar"><i style="width:${pct(answered, SIM.ids.length)}%"></i></div><div class="num small muted">${SIM.i+1}/${SIM.ids.length}</div>${hlBtn()}<span class="timer" id="tmr"></span></div>
+    <div class="progress"><button class="btn ghost" id="simPause">Pausar</button><div class="bar"><i style="width:${pct(answered, SIM.ids.length)}%"></i></div><div class="num small muted">${SIM.i+1}/${SIM.ids.length}</div>${hlBtn()}<span class="timer" id="tmr"></span></div>
+    <div class="xs faint sim-name"><button class="linkbtn" id="simRen" title="Renomear">${esc(SIM.name)} ${PEN_I}</button></div>
     ${questionHTML(q, {chosen: SIM.ch[q.id], reveal:false})}
     <div class="actions"><div class="xs faint">${answered} de ${SIM.ids.length} marcadas · use as setas para navegar</div>
       <div class="row"><button class="btn ghost" id="sPrev" ${SIM.i?'':'disabled'}>Anterior</button>
@@ -1210,15 +1418,30 @@ function pSimRun(){
       <button class="btn primary" id="sEnd">Finalizar</button></div></div>
     <div class="section"><div class="row" style="gap:6px">${SIM.ids.map((id,j) => `<button class="chip num" data-jump="${j}" aria-pressed="${j===SIM.i}" style="min-width:38px;${SIM.ch[id] && j!==SIM.i ? 'border-color:var(--ink-3);color:var(--ink)':''}">${j+1}</button>`).join('')}</div></div>
   </div>`;
-  const leave = () => { SIM.sec[q.id] = (SIM.sec[q.id]||0) + Math.round((Date.now()-SIM.qStart)/1000); };
+  const leave = () => { SIM.sec[q.id] = (SIM.sec[q.id]||0) + Math.round((Date.now()-SIM.qStart)/1000); SIM.qStart = Date.now(); };
   paintMarks();
-  document.querySelectorAll('[data-alt]').forEach(b => b.onclick = () => { if(hasSel()) return; SIM.ch[q.id] = b.dataset.alt; document.querySelectorAll('[data-alt]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.alt===SIM.ch[q.id]))); const c = document.querySelector(`[data-jump="${SIM.i}"]`); });
+  document.querySelectorAll('[data-alt]').forEach(b => b.onclick = () => { if(hasSel() || SIM.done[q.id]) return; SIM.ch[q.id] = b.dataset.alt; document.querySelectorAll('[data-alt]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.alt===SIM.ch[q.id]))); });
   const move = j => { leave(); SIM.i = j; pSimRun(); window.scrollTo(0,0); };
   $('#sPrev').onclick = () => SIM.i && move(SIM.i-1);
   if($('#sNext')) $('#sNext').onclick = () => move(SIM.i+1);
   document.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => move(+b.dataset.jump));
   $('#sEnd').onclick = () => { const miss = SIM.ids.length - Object.keys(SIM.ch).length; if(!miss || confirm(`${miss} ${miss>1?'questões':'questão'} sem resposta. Finalizar mesmo assim?`)){ leave(); finishSim(); } };
-  $('#simQuit').onclick = () => { if(confirm('Sair do simulado? As respostas marcadas serão descartadas.')){ SIM = null; go('simulado'); } };
+  $('#simRen').onclick = async () => { const v = await askText('Nome do simulado', SIM.name); if(v){ SIM.name = v; pSimRun(); } };
+  $('#simPause').onclick = async () => {
+    leave();
+    const n = Object.keys(SIM.ch).filter(id => !SIM.done[id]).length;
+    const c = await askChoice('Pausar o simulado', 'Ele fica salvo em "Em andamento" e você continua de onde parou, com o tempo que restava.', [
+      {label: 'Pausar sem corrigir', sub: 'Nada vai para o histórico até você corrigir', value: 'pause', primary: true},
+      ...(n ? [{label: `Pausar e corrigir as ${n} já respondidas`, sub: 'Elas entram no histórico e nas estatísticas agora', value: 'pausecor'}] : []),
+      {label: 'Continuar fazendo', value: null},
+      {label: 'Descartar este simulado', value: 'discard', danger: true}
+    ]);
+    if(!c) return;
+    if(c === 'discard'){ if(!confirm('Descartar o simulado? As respostas marcadas serão perdidas.')) return; removeAnsOfSim(SIM.id); SIM = null; save(); go('simulado'); return; }
+    if(c === 'pausecor') correctDone(SIM);
+    S.simPaused = S.simPaused || []; S.simPaused.push(pauseRecord()); SIM = null; save(); stopTimer();
+    toast(c === 'pausecor' ? 'Simulado pausado e corrigido até aqui.' : 'Simulado pausado.'); go('simulado');
+  };
   stopTimer();
   const tm = $('#tmr');
   const tick = () => { const el = Math.round((Date.now()-SIM.start)/1000); if(SIM.limit){ const r = Math.max(0, SIM.limit-el); tm.textContent = Math.floor(r/60)+':'+String(r%60).padStart(2,'0'); if(!r){ stopTimer(); toast('Tempo esgotado.'); leave(); finishSim(); } } else tm.textContent = Math.floor(el/60)+':'+String(el%60).padStart(2,'0'); };
@@ -1227,9 +1450,10 @@ function pSimRun(){
 }
 function finishSim(){
   stopTimer();
-  let ok = 0;
-  for(const id of SIM.ids){ const ch = SIM.ch[id]; if(ch){ if(record(id, ch, '', SIM.sec[id]||0, 'simulado')) ok++; } else { (S.ans[id] = S.ans[id] || []).push({t:Date.now(), d:today(), ch:'—', ok:false, conf:'', sec:SIM.sec[id]||0, mode:'simulado'}); S.srs[id] = {step:0, due: addDays(today(),1)}; } }
-  const rec = {date: today(), ids: SIM.ids, ch: SIM.ch, acc: pct(ok, SIM.ids.length), ok, sec: Math.round((Date.now()-SIM.start)/1000), label: SIM.label};
+  correctDone(SIM);
+  for(const id of SIM.ids){ if(!SIM.ch[id] && !SIM.done[id]){ (S.ans[id] = S.ans[id] || []).push({t:Date.now(), d:today(), ch:'—', ok:false, conf:'', sec:SIM.sec[id]||0, mode:'simulado', sim: SIM.id}); S.srs[id] = {step:0, due: addDays(today(),1)}; } }
+  const ok = SIM.okDone;
+  const rec = {id: SIM.id, name: SIM.name, date: SIM.date || today(), ids: SIM.ids, ch: SIM.ch, acc: pct(ok, SIM.ids.length), ok, sec: Math.round((Date.now()-SIM.start)/1000), label: SIM.label};
   S.sims.push(rec); save(); SIM = null;
   go('simres', {k: S.sims.length-1});
 }
@@ -1239,8 +1463,9 @@ function pSimRes(){
   const byM = {}; s.ids.forEach(id => { const q = QI[id]; const k = q.a+'.'+q.m; const g = byM[k] = byM[k] || {n:0,ok:0,q}; g.n++; if(s.ch[id] === q.g) g.ok++; });
   const weak = Object.values(byM).filter(g => g.ok < g.n).sort((a,b) => a.ok/a.n - b.ok/b.n).slice(0,5);
   const blank = s.ids.filter(id => !s.ch[id]).length;
+  const k = route.k;
   $('#view').innerHTML = `<div class="page">
-    <div class="head"><div><div class="eyebrow">Resultado do simulado · ${fmtD(s.date)}</div><h1>${s.acc}% de acerto</h1><p class="muted">${esc(s.label)}</p></div><button class="btn" data-go="simulado">Novo simulado</button></div>
+    <div class="head"><div><div class="eyebrow">${esc(simName(s, k))} · ${fmtD(s.date)} <button class="icon-btn" id="srRen" title="Renomear" aria-label="Renomear">${PEN_I}</button></div><h1>${s.acc}% de acerto</h1><p class="muted">${esc(s.label)}</p></div><div class="row"><button class="btn ghost" id="srDel" style="color:var(--bad)">Excluir</button><button class="btn" data-go="simulado">Novo simulado</button></div></div>
     <div class="stats" style="grid-template-columns:repeat(4,1fr)">
       <div class="stat"><b class="num">${s.ok}</b><span>acertos</span></div>
       <div class="stat"><b class="num">${s.ids.length - s.ok - blank}</b><span>erros</span></div>
@@ -1249,11 +1474,12 @@ function pSimRes(){
     </div>
     <div class="section"><h3>Por especialidade</h3>${Object.keys(byA).map(k => hbar(A.areas[k].label, byA[k].ok, byA[k].n)).join('')}</div>
     ${weak.length ? `<div class="section"><h3>Onde você mais perdeu pontos</h3>${weak.map(g => hbar(A.areas[g.q.a].materias[g.q.m].nome, g.ok, g.n)).join('')}</div>` : ''}
-    <div class="section"><h3>Gabarito comentado</h3><p class="muted small">Toque em uma questão para ver sua resposta, o gabarito e a explicação.</p>
+    <div class="section"><h3>Questões</h3>
       <div class="dq-grid">${s.ids.map((id, j) => qCard(QI[id], !s.ch[id] ? 'no' : s.ch[id]===QI[id].g ? 'ok' : 'bad', {top: j + 1, r: s.ch[id] ? {ch: s.ch[id]} : null, noLab: 'Em branco'})).join('')}</div></div>
   </div>`;
-  const k = route.k;
-  bindQRows(s.ids, 'Resultado do simulado', () => go('simres', {k}), {k: 'sim', n: k});
+  bindQRows(s.ids, 'Resultado do simulado', () => go('simres', {k}), {k: 'sim', n: k, id: s.id});
+  $('#srRen').onclick = async () => { const v = await askText('Nome do simulado', simName(s, k)); if(v){ s.name = v; save(); pSimRes(); } };
+  $('#srDel').onclick = async () => { const ok = await askChoice('Excluir "' + simName(s, k) + '"?', 'As respostas deste simulado saem do seu histórico, das estatísticas e da revisão. Não dá para desfazer.', [{label: 'Excluir', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ deleteSim(k); toast('Simulado excluído.'); go('simulado'); } };
 }
 
 /* ---------- Revisão ---------- */
@@ -1278,8 +1504,8 @@ function pRevisao(){
   if(tab==='nao'){ ids = unIds; body = listOf(ids, 'Você já respondeu todas as questões do banco.'); }
   if(tab==='hist'){
     const days = Object.keys(S.days).filter(k => Object.keys(S.days[k].res).length).sort().reverse();
-    body = `<h3 style="margin-bottom:12px">30 do dia</h3>${days.length ? `<div class="list">${days.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.ok} acertos · ${x.bad} erros · ${x.n}/${S.days[k].ids.length}</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div>` : '<div class="empty">Nenhum dia registrado.</div>'}
-      <h3 style="margin:40px 0 12px">Simulados</h3>${S.sims.length ? `<div class="list">${S.sims.map((s,j)=>[s,j]).reverse().map(([s,j]) => `<div class="li click" data-sim="${j}"><div class="t"><div>${fmtD(s.date)} · ${s.ids.length} questões</div><div class="xs faint">${esc(s.label)}</div></div><div class="num">${s.acc}%</div></div>`).join('')}</div>` : '<div class="empty">Nenhum simulado feito.</div>'}`;
+    body = `<h3 style="margin-bottom:12px">Questões do dia</h3>${days.length ? `<div class="list">${days.map(k => { const x = dayStats(S.days[k]); return `<div class="li click" data-day="${k}"><div class="t"><div>${fmtD(k)}</div><div class="xs faint">${x.ok} acertos · ${x.bad} erros · ${x.n}/${S.days[k].ids.length}</div></div><div class="num">${x.acc}%</div></div>`; }).join('')}</div>` : '<div class="empty">Nenhum dia registrado.</div>'}
+      <h3 style="margin:40px 0 12px">Simulados</h3>${S.sims.length ? `<div class="list">${S.sims.map((s,j)=>[s,j]).reverse().map(([s,j]) => `<div class="li click" data-sim="${j}"><div class="t"><div>${esc(simName(s, j))}</div><div class="xs faint">${fmtD(s.date)} · ${s.ids.length} questões · ${esc(s.label)}</div></div><div class="num">${s.acc}%</div></div>`).join('')}</div>` : '<div class="empty">Nenhum simulado feito.</div>'}`;
   }
   $('#view').innerHTML = `<div class="page"><div class="head"><div><h1>Revisão</h1></div></div>
     <div class="tabs" role="tablist">${T.map(([k,t,n]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${t}${n!==''?` <span class="faint num">${n}</span>`:''}</button>`).join('')}</div>
@@ -1306,7 +1532,7 @@ let NOTE_SRC = {k: 'livre'};
 function srcLabel(src){
   if(!src) return 'Estudo livre';
   if(src.k === 'dia') return 'Erros do dia ' + fmtD(src.d);
-  if(src.k === 'sim') return 'Simulado ' + (src.n + 1);
+  if(src.k === 'sim'){ const s = src.id ? S.sims.find(x => x.id === src.id) : S.sims[src.n]; return s ? simName(s) : 'Simulado ' + (src.n + 1); }
   return 'Estudo livre';
 }
 function srcOrder(src){ if(!src) return '0'; if(src.k === 'dia') return '2' + src.d; if(src.k === 'sim') return '1' + String(src.n).padStart(4, '0'); return '0'; }
@@ -1713,6 +1939,225 @@ function pMateria(tid){
   paintMarks();
 }
 
+/* ---------- Cronograma (03/10 a 30/10; prova 01/11) ---------- */
+const CR_EXAM = '2026-11-01';
+const CR_TYPES = {aula: 'Aula', releitura: 'Releitura', questoes: 'Questões', correcao: 'Correção', simulado: 'Simulado', pausa: 'Almoço'};
+/* [início, fim, tipo, título, detalhe, temas de revisão ligados (para dicas, resumo e questões)] */
+const CRN = (title, detail, rv, ty) => [['19:30', '22:00', ty || 'aula', title, detail + ' · Pausa de 10 min às 20:45.', rv]];
+const LUNCH = ['12:30', '13:30', 'pausa', 'Almoço', '', []];
+const CR_PLAN = {
+  '2026-10-03': [
+    ['10:00', '12:30', 'aula', 'Cardiologia — Insuficiência cardíaca', 'FE reduzida e os 4 pilares do tratamento; IC de FE preservada e amiloidose; choque cardiogênico; edema agudo de pulmão hipertensivo.', ['ic_fer', 'ic_fep_amiloidose', 'choque_tipos', 'eap']],
+    LUNCH,
+    ['13:30', '15:30', 'aula', 'Cardiologia — Doença coronariana', 'Angina estável e probabilidade pré-teste; teste ergométrico; SCA: IAM de parede inferior/VD, SCA por cocaína, reperfusão.', ['pretest_dac', 'sca']],
+    ['15:45', '17:45', 'aula', 'MFC — Testes diagnósticos', 'Sensibilidade, especificidade, VPP e VPN, razão de verossimilhança, teorema de Bayes (caiu nas provas de 2022 a 2026).', ['testes_diagnosticos']]],
+  '2026-10-04': [
+    ['10:00', '12:30', 'questoes', 'Cardiologia — IC e coronariopatia', 'Questões da UERJ sobre os temas de ontem (botão "Questões deste tema"). Inclua as 20 do dia.', ['ic_fer', 'ic_fep_amiloidose', 'choque_tipos', 'eap', 'pretest_dac', 'sca']],
+    LUNCH,
+    ['13:30', '15:30', 'correcao', 'Correção — Cardiologia', 'Corrija com calma e anote cada erro (vai para o Caderno de Erros e para a revisão de 1, 3 e 7 dias).', ['ic_fer', 'sca']],
+    ['15:45', '17:45', 'aula', 'Ginecologia — Rastreamento e câncer do colo', 'Citologia (2016) × DNA-HPV (Diretriz 2025); condutas em ASC-US, LSIL, HSIL; colposcopia; estadiamento FIGO e tratamento.', ['rastreio_colo', 'cancer_colo']]],
+  '2026-10-05': CRN('Cardiologia — Endocardite infecciosa e valvopatias', 'Com seus resumos. Duke-ISCVID 2023, agentes (S. aureus; S. gallolyticus → investigar cólon), quando operar; estenose aórtica e mitral, sopros', ['endocardite', 'valvopatias'], 'releitura'),
+  '2026-10-06': CRN('Cardiologia — Hipertensão arterial', 'Diagnóstico e metas (DBHA 2025), HAS sistólica isolada no idoso, escolha do anti-hipertensivo, HAS secundária (hiperaldosteronismo, renovascular)', ['has_diag_trat', 'has_renovascular']),
+  '2026-10-07': CRN('Cardiologia — Pericárdio e aorta', 'Pericardite aguda, tamponamento (tríade de Beck, pulso paradoxal), dissecção de aorta (Stanford), hipertensão pulmonar', ['pericardio_tamponamento', 'disseccao_aorta', 'hipertensao_pulmonar']),
+  '2026-10-08': CRN('Endocrinologia — Diabetes', 'Critérios de pré-diabetes e DM2, testes diagnósticos, antidiabéticos (iSGLT2), cetoacidose diabética', ['dm_diag', 'dm_trat', 'cad']),
+  '2026-10-09': CRN('Endocrinologia — Tireoide e adrenal', 'Tireoidites, hipotireoidismo subclínico, doença de Cushing, insuficiência adrenal, hiperaldosteronismo primário', ['tireoide', 'adrenal']),
+  '2026-10-10': [
+    ['10:00', '12:30', 'questoes', 'Cardiologia e Endocrinologia da semana', 'Endocardite, valvopatias, HAS, pericárdio/aorta, diabetes, tireoide e adrenal. Inclua as 20 do dia.', ['endocardite', 'valvopatias', 'has_diag_trat', 'pericardio_tamponamento', 'disseccao_aorta', 'dm_diag', 'dm_trat', 'cad', 'tireoide', 'adrenal']],
+    LUNCH,
+    ['13:30', '15:30', 'correcao', 'Correção — Cardio e Endócrino', 'Corrija e anote os erros.', []],
+    ['15:45', '17:45', 'aula', 'Endocrinologia — Cálcio e sódio', 'Hiperparatireoidismo, hipocalcemia pós-paratireoidectomia, osteoporose e fratura vertebral; hiponatremia e SIADH.', ['calcio_osso', 'sodio']]],
+  '2026-10-11': [
+    ['10:00', '12:30', 'aula', 'Infectologia — Dengue e arboviroses', 'Prova do laço (caiu 2 vezes), grupos A a D e hidratação, sinais de alarme, dengue grave; chikungunya, zika e Oropouche.', ['arboviroses']],
+    LUNCH,
+    ['13:30', '15:30', 'aula', 'Infectologia — HIV', 'TARV inicial (PCDT 2024), profilaxias (SMX-TMP), oportunistas (cystoisosporíase, criptococose), TB no HIV e momento da TARV.', ['tarv', 'tb_hiv', 'hiv_oportunistas_intestino']],
+    ['15:45', '17:45', 'questoes', 'Endócrino (cálcio e sódio) + Infecto (dengue e HIV)', 'Questões + correção no mesmo bloco. Inclua as 20 do dia.', ['calcio_osso', 'sodio', 'arboviroses', 'tarv', 'tb_hiv']]],
+  '2026-10-12': [
+    ['10:00', '12:30', 'aula', 'Infectologia — Meningites, TB e outras', 'Meningite bacteriana e tuberculosa (LCR), TB pulmonar, coqueluche, hanseníase, bacteriúria assintomática.', ['meningite_adulto', 'tb_pulmonar_ca', 'coqueluche', 'hanseniase', 'bacteriuria']],
+    LUNCH,
+    ['13:30', '15:30', 'questoes', 'Infectologia', 'Questões + correção de todos os temas de Infecto. Inclua as 20 do dia.', ['arboviroses', 'tarv', 'tb_hiv', 'meningite_adulto', 'tb_pulmonar_ca', 'coqueluche', 'hanseniase', 'bacteriuria']],
+    ['15:45', '17:45', 'aula', 'MFC — SUS e Atenção Primária', 'Princípios do SUS, atributos da APS, participação social e organização da rede; método clínico centrado na pessoa e abordagem familiar.', ['aps_sus', 'mccp']]],
+  '2026-10-13': CRN('Pediatria — Infecto ped I: exantemáticas e Kawasaki', 'Sarampo, rubéola, exantema súbito, eritema infeccioso, varicela, escarlatina; doença de Kawasaki e SIM-P', ['exantematicas', 'kawasaki_simp']),
+  '2026-10-14': CRN('Pediatria — Infecto ped II: meningites e congênitas', 'Meningite na criança e leitura do LCR; TORCH; sífilis congênita (quando tratar o RN, esquemas)', ['meningite_ped', 'congenitas']),
+  '2026-10-15': CRN('Pediatria — Infecto ped III: TB, HIV, pneumonia e ITU', 'TB na criança (escore, contatos, ILTB), RN exposto ao HIV, pneumonia e vacinas pneumocócicas, ITU na criança', ['tb_ped', 'hiv_crianca', 'pneumococo_ped', 'itu_ped']),
+  '2026-10-16': CRN('Pediatria — Neonatologia', 'Reanimação neonatal (SBP 2022), icterícia neonatal e atresia biliar, encefalopatia hipóxico-isquêmica, cardiopatias congênitas e teste do coraçãozinho', ['reanimacao_neonatal', 'neonatal_ictericia', 'eh_isquemica', 'cardio_congenita']),
+  '2026-10-17': [
+    ['10:00', '12:30', 'questoes', 'Pediatria da semana', 'Infecto ped (exantemáticas, Kawasaki, meningite, congênitas, TB, HIV, ITU) e Neonatologia. Inclua as 20 do dia.', ['exantematicas', 'kawasaki_simp', 'meningite_ped', 'congenitas', 'tb_ped', 'hiv_crianca', 'itu_ped', 'reanimacao_neonatal', 'neonatal_ictericia', 'cardio_congenita']],
+    LUNCH,
+    ['13:30', '15:30', 'correcao', 'Correção — Pediatria', 'Corrija e anote os erros.', []],
+    ['15:45', '17:45', 'aula', 'Obstetrícia — Síndromes hipertensivas e diabetes gestacional', 'Pré-eclâmpsia (critérios de gravidade), eclâmpsia, HELLP, sulfato de magnésio e toxicidade; DMG (diagnóstico, metas, insulina).', ['pe_eclampsia', 'dmg']]],
+  '2026-10-18': [
+    ['10:00', '15:00', 'simulado', 'Simulado completo 1 — 100 questões', 'Prova inteira no tempo oficial (5 horas). Em Simulado, escolha "100 questões" e "Só inéditas".', []],
+    ['15:00', '16:00', 'pausa', 'Almoço e descanso', '', []],
+    ['16:00', '18:00', 'correcao', 'Correção do simulado', 'Corrija tudo e anote os erros; veja em "Onde você mais perdeu pontos".', []]],
+  '2026-10-19': CRN('Neurologia — AVC e doenças neuromusculares', 'AVC isquêmico e AIT (trombólise, dupla antiagregação), esclerose múltipla e neurite óptica, Guillain-Barré, miastenia, ELA', ['avc_ait', 'em_desmielinizante', 'neuro_periferico']),
+  '2026-10-20': CRN('Cirurgia — Abdome agudo', 'Apendicite (Alvarado, gestante), obstrução intestinal e Ogilvie, pancreatite aguda (Atlanta, necrose)', ['abdome_agudo_apendicite', 'obstrucao_intestinal', 'pancreatite']),
+  '2026-10-21': CRN('Cirurgia — Vias biliares', 'Colecistite (critérios de Tóquio), colangite, icterícia obstrutiva e tumores periampulares, câncer de vesícula', ['colecistite', 'colangite', 'ictericia_obstrutiva', 'vias_biliares_cancer']),
+  '2026-10-22': CRN('Cirurgia — Oncologia do trato digestivo', 'Com seu resumo de Onco TGI. Câncer colorretal e de reto, estômago, tumores neuroendócrinos', ['tumores_gi'], 'releitura'),
+  '2026-10-23': CRN('Cirurgia — Trauma (ATLS 11ª edição)', 'Atendimento inicial XABCDE, trauma torácico, choque hemorrágico e pelve, TCE e escala de Glasgow', ['atls', 'trauma_torax', 'choque_hemorragico_pelve', 'tce_glasgow']),
+  '2026-10-24': [
+    ['10:00', '12:30', 'questoes', 'Cirurgia e Neurologia da semana', 'Abdome agudo, vias biliares, onco TGI, trauma, AVC e neuromusculares. Inclua as 20 do dia.', ['abdome_agudo_apendicite', 'obstrucao_intestinal', 'pancreatite', 'colecistite', 'colangite', 'tumores_gi', 'atls', 'trauma_torax', 'avc_ait', 'neuro_periferico']],
+    LUNCH,
+    ['13:30', '15:30', 'correcao', 'Correção — Cirurgia e Neuro', 'Corrija e anote os erros.', []],
+    ['15:45', '17:45', 'aula', 'Obstetrícia — Sangramentos e parto', 'Placenta prévia × DPP, gravidez ectópica e abortamento, hemorragia pós-parto, partograma e cardiotocografia.', ['sangramento_3tri', 'gestacao_inicial', 'puerperio_hpp', 'parto_assistencia']]],
+  '2026-10-25': [
+    ['10:00', '15:00', 'simulado', 'Simulado completo 2 — 100 questões', 'Prova inteira no tempo oficial (5 horas). Em Simulado, escolha "100 questões" e "Só inéditas".', []],
+    ['15:00', '16:00', 'pausa', 'Almoço e descanso', '', []],
+    ['16:00', '18:00', 'correcao', 'Correção do simulado', 'Compare com o simulado 1: o que melhorou e o que ainda falha.', []]],
+  '2026-10-26': CRN('Pediatria — Gastro, crescimento e aleitamento', 'APLV, doença celíaca, desidratação, constipação; HAC, puberdade precoce e baixa estatura; aleitamento materno', ['aplv_celiaca_gi', 'hac_endocrino', 'aleitamento']),
+  '2026-10-27': CRN('Ginecologia — Oncologia ginecológica e IST', 'Sangramento pós-menopausa e câncer de endométrio, tumores de ovário, úlceras genitais, vaginites e DIP', ['endometrio', 'tumores_ovario', 'ists_vaginites']),
+  '2026-10-28': CRN('MFC — Prevenção e epidemiologia', 'Níveis de prevenção e prevenção quaternária, rastreamentos do MS, desenhos de estudo e NNT, vigilância em surto', ['prevencao_niveis', 'rastreamento_criterios', 'desenhos_estudo', 'dengue_surto']),
+  '2026-10-29': CRN('Clínica Médica — Reumatologia e gastro', 'Artrite reumatoide, gota, espondiloartrites, FAN; H. pylori e úlcera, ascite e PBE', ['reumato_poliartrite', 'gota', 'colagenoses_fan', 'h_pylori', 'ascite_gasa']),
+  '2026-10-30': [['19:30', '21:00', 'releitura', 'Releitura leve e descanso', 'Só seus resumos e as fichas clínicas dos temas que você mais errou (Caderno de Erros). Nada de conteúdo novo. Termine às 21h e durma cedo: amanhã é viagem.', []]]
+};
+const CR_WEEKS = [
+  ['2026-10-03', '2026-10-09', 'Cardiologia, Endócrino e início de GO/MFC', 'Comece cada tema pelo que a UERJ mais repete: os pontos marcados como prioridade na sua análise.'],
+  ['2026-10-10', '2026-10-16', 'Infectologia, Endócrino e Pediatria', 'Antes de reler, tente escrever de memória os pontos-chave do tema. Depois confira: é isso que fixa.'],
+  ['2026-10-17', '2026-10-23', 'Simulado 1, Neurologia e Cirurgia', 'No simulado, faça a prova inteira no tempo real (5 horas). Treinar o ritmo vale tanto quanto o conteúdo.'],
+  ['2026-10-24', '2026-10-30', 'Simulado 2, Pediatria, GO, MFC e fechamento', 'Nos últimos dias, menos conteúdo novo e mais sono. Dormir bem rende mais na prova do que uma noite a mais de estudo.']
+];
+const CR_TIPS = [
+  ['Simulados no tempo real', 'Em 18/10 e 25/10 você faz a prova inteira (100 questões, 5 horas, como no edital 2027). Isso treina o ritmo, que costuma ser o maior vilão de uma prova longa.'],
+  ['Revisão ativa, não releitura passiva', 'Antes de reler um resumo, feche tudo e tente escrever de memória os pontos-chave. Errar e corrigir na hora fixa muito mais do que só reler.'],
+  ['Erro anotado na hora', 'Toda questão errada vira anotação no mesmo momento (Minha anotação). Ela entra no Caderno de Erros e volta para você em 1, 3, 7, 15 e 30 dias.'],
+  ['GO e MFC desde o começo', 'No edital 2027 cada área vale 20 questões: GO e MFC pesam tanto quanto Clínica. Por isso elas aparecem desde a primeira semana, nas tardes de fim de semana.'],
+  ['Alta recorrência primeiro', 'Dentro de cada tema, comece pelo que mais caiu (O que mais cai). Os detalhes raros ficam para depois, se sobrar tempo.'],
+  ['Blocos de 25 minutos nas questões', 'Nos blocos de questões, trabalhe 25 minutos e descanse 5. Mantém o ritmo sem cansar como 2h30 corridas.'],
+  ['Sono antes da prova', 'Os dias 29 e 30/10 são mais leves. Sábado é viagem: nada de estudo pesado. Chegar descansada rende mais do que uma noite a mais de questões.'],
+  ['Marque o que cumpriu', 'Ao terminar cada bloco, marque a caixinha. Assim você vê o que de fato foi feito, não só o que foi planejado.']
+];
+const CR_DOW = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const crDow = d => CR_DOW[new Date(d + 'T12:00:00').getDay()];
+function crBuild(){
+  const days = {};
+  for(const [d, bs] of Object.entries(CR_PLAN)) days[d] = bs.map(([s, e, ty, ti, de, rv]) => ({id: uid8(), s, e, ty, ti, de, rv: rv.slice(), done: false}));
+  return {v: 1, days};
+}
+function crData(){ if(!S.crono || !S.crono.days){ S.crono = crBuild(); save(); } return S.crono; }
+const crNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const CR_STOP = new Set('com sem para pela pelo das dos nas nos uma por que como mais tema aula questoes releitura correcao clinica medica geral parte outras outros'.split(' '));
+/* liga um texto livre aos temas de revisão (as dicas acompanham o tema que você escrever) */
+function crMatch(text){
+  const t = crNorm(text);
+  const exact = Object.entries(RV.T).find(([, x]) => crNorm(x.t) === t); if(exact) return [exact[0]];
+  const words = t.split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !CR_STOP.has(w));
+  if(!words.length) return [];
+  const sc = Object.entries(RV.T).map(([id, x]) => { const tt = crNorm(x.t + ' ' + id.replace(/_/g, ' ')); return [id, words.filter(w => tt.includes(w)).length]; }).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  if(!sc.length) return [];
+  return sc.filter(x => x[1] === sc[0][1]).slice(0, 4).map(x => x[0]);
+}
+function crTips(b){
+  const out = [], seen = new Set();
+  for(const id of (b.rv || [])){
+    const t = RV.T[id]; if(!t) continue;
+    for(const [k, x] of t.tips) if(!seen.has(x)){ seen.add(x); out.push([k, x]); }
+    for(const qid of (TOPICQ[id] || [])) for(const pg of (tema(QI[qid]).peg || [])) if(!seen.has(pg)){ seen.add(pg); out.push(['pegadinha', pg]); }
+  }
+  return out.slice(0, 8);
+}
+function crQs(b){ const s = new Set(); (b.rv || []).forEach(id => (TOPICQ[id] || []).forEach(q => { if(QI[q] && valid(QI[q])) s.add(q); })); return [...s]; }
+let CR_OPEN = null, CR_EDIT = null;
+function pCrono(){
+  const C = crData();
+  const dates = Object.keys(C.days).sort();
+  const all = dates.flatMap(d => C.days[d].filter(b => b.ty !== 'pausa'));
+  const done = all.filter(b => b.done).length;
+  const left = Math.max(0, Math.round((new Date(CR_EXAM + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 864e5));
+  const td = today();
+  const weekOf = d => CR_WEEKS.findIndex(w => d >= w[0] && d <= w[1]);
+  let curW = weekOf(td); if(curW < 0) curW = td < CR_WEEKS[0][0] ? 0 : CR_WEEKS.length - 1;
+  const extra = dates.filter(d => weekOf(d) < 0);
+  const block = (d, b) => {
+    const open = CR_OPEN === b.id, edit = CR_EDIT === b.id;
+    if(b.ty === 'pausa' && !edit) return `<div class="cr-b cr-pause" data-bid="${b.id}"><span class="cr-time num">${b.s}–${b.e}</span><span class="faint">${esc(b.ti)}</span><button class="icon-btn cr-mini" data-cedit="${b.id}" title="Editar" aria-label="Editar">${PEN_I}</button></div>`;
+    if(edit) return crEditHTML(d, b);
+    const qs = crQs(b), tips = crTips(b);
+    return `<div class="cr-b${b.done ? ' done' : ''}${open ? ' open' : ''}" data-bid="${b.id}">
+      <div class="cr-row"><button class="cr-ck" data-ck="${b.id}" aria-pressed="${b.done}" aria-label="Marcar como feito"></button>
+        <span class="cr-time num">${b.s}–${b.e}</span><span class="cr-ty ty-${b.ty}">${CR_TYPES[b.ty] || b.ty}</span><span class="cr-ti">${esc(b.ti)}</span></div>
+      ${open ? `<div class="cr-more">
+        ${b.de ? `<p class="cr-de">${esc(b.de)}</p>` : ''}
+        <div class="cr-acts">
+          ${qs.length ? `<button class="btn" data-cq="${b.id}">Questões deste tema <span class="faint num">${qs.length}</span></button>` : ''}
+          ${(b.rv || []).filter(id => RV.T[id]).length ? `<button class="btn ghost" data-cr="${b.id}">Ver resumo</button>` : ''}
+          ${tips.length ? `<button class="btn ghost" data-ctips="${b.id}">Dicas do tema <span class="faint num">${tips.length}</span></button>` : ''}
+          <span style="flex:1"></span>
+          <button class="icon-btn" data-cedit="${b.id}" title="Editar" aria-label="Editar">${PEN_I}</button>
+          <button class="icon-btn" data-cdel="${b.id}" title="Excluir" aria-label="Excluir">${TRASH_I}</button>
+        </div>
+        <div class="cr-tips" id="tips-${b.id}" hidden>${tips.map(([k, x]) => `<div class="cr-tip"><span class="rv-tk">${TIPLAB[k] || 'Dica'}</span><span>${rvInline(x)}</span></div>`).join('')}</div>
+      </div>` : ''}
+    </div>`;
+  };
+  const dayHTML = d => `<div class="cr-day${d === td ? ' today' : ''}${d < td ? ' past' : ''}" id="day-${d}">
+      <div class="cr-dh"><span>${crDow(d)} ${fmtShort(d)}</span>${d === td ? '<span class="cr-today">hoje</span>' : ''}<span style="flex:1"></span><button class="icon-btn" data-cadd="${d}" title="Adicionar bloco" aria-label="Adicionar bloco">+</button></div>
+      ${(C.days[d] || []).slice().sort((a, b) => a.s < b.s ? -1 : 1).map(b => block(d, b)).join('') || '<div class="xs faint" style="padding:6px 0 4px">Livre</div>'}
+    </div>`;
+  const weekHTML = (w, i) => {
+    const ds = dates.filter(d => d >= w[0] && d <= w[1]);
+    const bl = ds.flatMap(d => C.days[d].filter(b => b.ty !== 'pausa'));
+    return `<details class="nb-group cr-week"${i === curW ? ' open' : ''}><summary><span class="nb-gt">Semana ${i + 1} <span class="faint small">· ${fmtShort(w[0])} a ${fmtShort(w[1])} · ${esc(w[2])}</span></span><span class="faint small num">${bl.filter(b => b.done).length}/${bl.length}</span></summary>
+      <div class="nb-gbody"><p class="cr-wtip"><span>Dica da semana</span>${esc(w[3])}</p>${ds.map(dayHTML).join('')}</div></details>`;
+  };
+  $('#view').innerHTML = `<div class="page">
+    <div class="head"><div><h1>Cronograma</h1><p class="muted small">Prova em 01/11 · faltam ${left} dias · ${done} de ${all.length} blocos feitos</p></div></div>
+    <div class="cr-weeks">${CR_WEEKS.map(weekHTML).join('')}
+    ${extra.length ? `<details class="nb-group cr-week" open><summary><span class="nb-gt">Outros dias</span></summary><div class="nb-gbody">${extra.map(dayHTML).join('')}</div></details>` : ''}</div>
+    <details class="nb-group cr-week" style="margin-top:34px"><summary><span class="nb-gt">Dicas de estudo</span><span class="faint small num">${CR_TIPS.length}</span></summary>
+      <div class="nb-gbody">${CR_TIPS.map(([t, x]) => `<div class="cr-mtip"><b>${esc(t)}</b><p class="muted small">${esc(x)}</p></div>`).join('')}</div></details>
+    <p class="xs faint" style="margin-top:28px">Tudo aqui é editável: toque num bloco para abrir, no lápis para editar e no + do dia para adicionar. <button class="linkbtn" id="crReset">Restaurar o plano original</button></p>
+    <datalist id="crTopics">${Object.values(RV.T).map(t => `<option value="${esc(t.t)}">`).join('')}</datalist>
+  </div>`;
+  crBind();
+}
+function crFind(id){ const C = crData(); for(const d in C.days){ const b = C.days[d].find(x => x.id === id); if(b) return [d, b]; } return [null, null]; }
+function crEditHTML(d, b){
+  const C = crData();
+  return `<div class="cr-b editing" data-bid="${b.id}"><div class="cr-form">
+    <label class="f">Dia<input type="date" id="ceD" value="${d}"></label>
+    <label class="f">Início<input type="time" id="ceS" value="${b.s}"></label>
+    <label class="f">Fim<input type="time" id="ceE" value="${b.e}"></label>
+    <label class="f">Tipo<select id="ceT">${Object.entries(CR_TYPES).map(([k, t]) => `<option value="${k}" ${b.ty === k ? 'selected' : ''}>${k === 'pausa' ? 'Pausa / almoço' : t}</option>`).join('')}</select></label>
+    <label class="f cr-wide">Tema<input type="text" id="ceTi" list="crTopics" value="${esc(b.ti)}" placeholder="Ex.: Cardiologia — Insuficiência cardíaca"></label>
+    <label class="f cr-wide">O que estudar (opcional)<textarea id="ceDe" rows="3">${esc(b.de || '')}</textarea></label>
+    <div class="row cr-wide" style="justify-content:flex-end"><button class="btn ghost" data-ccancel>Cancelar</button><button class="btn primary" data-csave="${b.id}">Salvar</button></div>
+  </div></div>`;
+}
+function crBind(){
+  const C = crData();
+  const re = () => { const y = scrollY; pCrono(); window.scrollTo(0, y); };
+  document.querySelectorAll('.cr-b:not(.editing)').forEach(el => el.addEventListener('click', e => {
+    if(e.target.closest('button,a,input,select,textarea')) return;
+    CR_OPEN = CR_OPEN === el.dataset.bid ? null : el.dataset.bid; re();
+  }));
+  document.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.ck); x.done = !x.done; save(); re(); });
+  document.querySelectorAll('[data-ctips]').forEach(b => b.onclick = () => { const t = $('#tips-' + b.dataset.ctips); t.hidden = !t.hidden; });
+  document.querySelectorAll('[data-cq]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.cq); const qs = crQs(x); const first = qs.find(id => !S.ans[id]) || qs[0]; openQ(first, qs, 'Cronograma', () => go('crono')); });
+  document.querySelectorAll('[data-cr]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.cr); const id = x.rv.find(i => RV.T[i]); go('materias', {topic: id}); });
+  document.querySelectorAll('[data-cedit]').forEach(b => b.onclick = () => { CR_EDIT = b.dataset.cedit; CR_OPEN = null; re(); const f = $('#ceTi'); if(f) f.focus(); });
+  document.querySelectorAll('[data-cdel]').forEach(b => b.onclick = async () => { const [d, x] = crFind(b.dataset.cdel); const ok = await askChoice('Excluir este bloco?', esc(x.s + '–' + x.e + ' · ' + x.ti), [{label: 'Excluir', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ C.days[d] = C.days[d].filter(y => y.id !== x.id); save(); re(); } });
+  document.querySelectorAll('[data-cadd]').forEach(b => b.onclick = () => { const d = b.dataset.cadd; const nb = {id: uid8(), s: '19:30', e: '22:00', ty: 'aula', ti: '', de: '', rv: [], done: false}; (C.days[d] = C.days[d] || []).push(nb); CR_EDIT = nb.id; save(); re(); const f = $('#ceTi'); if(f) f.focus(); });
+  const cancel = $('[data-ccancel]'); if(cancel) cancel.onclick = () => { const [d, x] = crFind(CR_EDIT); if(x && !x.ti){ C.days[d] = C.days[d].filter(y => y.id !== x.id); save(); } CR_EDIT = null; re(); };
+  const sv = $('[data-csave]'); if(sv) sv.onclick = () => {
+    const [d, x] = crFind(sv.dataset.csave); if(!x) return;
+    const nd = $('#ceD').value || d, ti = $('#ceTi').value.trim();
+    if(!ti){ toast('Escreva o tema do bloco.'); return; }
+    if(ti !== x.ti) x.rv = crMatch(ti);   /* tema novo: dicas, resumo e questões passam a seguir o novo tema */
+    Object.assign(x, {s: $('#ceS').value || x.s, e: $('#ceE').value || x.e, ty: $('#ceT').value, ti, de: $('#ceDe').value.trim()});
+    if(nd !== d){ C.days[d] = C.days[d].filter(y => y.id !== x.id); (C.days[nd] = C.days[nd] || []).push(x); }
+    CR_EDIT = null; CR_OPEN = x.id; save(); re();
+  };
+  const rs = $('#crReset'); if(rs) rs.onclick = async () => { const ok = await askChoice('Restaurar o plano original?', 'Suas edições e marcações do cronograma serão substituídas pelo plano inicial.', [{label: 'Restaurar', value: 1, danger: true}, {label: 'Cancelar', value: 0}]); if(ok){ S.crono = crBuild(); save(); CR_OPEN = CR_EDIT = null; re(); } };
+  if(!crBind._scrolled){ crBind._scrolled = true; const t = document.getElementById('day-' + today()); if(t) setTimeout(() => t.scrollIntoView({block: 'start', behavior: 'smooth'}), 120); }
+}
+/* uma linha discreta no Início com o que está no cronograma de hoje */
+function crTodayLine(){
+  const C = S.crono && S.crono.days ? S.crono : null;
+  const list = ((C && C.days[today()]) || crBuild().days[today()] || []).filter(b => b.ty !== 'pausa').sort((a, b) => a.s < b.s ? -1 : 1);
+  if(!list.length) return '';
+  const b = list.find(x => !x.done) || list[0];
+  return `<div class="cr-home"><span class="eyebrow">Hoje no cronograma</span><button class="linkbtn" data-go="crono"><span class="num">${b.s}–${b.e}</span> · ${esc(CR_TYPES[b.ty] || '')} · ${esc(b.ti)} →</button></div>`;
+}
+
 /* ---------- Gráficos (SVG, sem bibliotecas) ---------- */
 function lineChart(points, opts){
   // points: [{x:label, y:0..100, tip}]
@@ -1776,7 +2221,7 @@ function pGraficos(){
     </div>
     <div class="section"><h3>Evolução do percentual de acertos</h3><p class="muted small" style="margin:-8px 0 14px">Acumulado dia a dia. A linha tracejada marca 70%, uma meta segura para a UERJ.</p>${lineChart(evo, {ref:70, refLabel:'meta 70%', aria:'Evolução do percentual de acertos'})}</div>
     <div class="section"><h3>Acertos e erros por dia</h3>${stackChart(days.slice(-30))}</div>
-    <div class="section"><h3>Evolução das 30 questões diárias</h3>${lineChart(dailyEvo, {ref:70, refLabel:'meta 70%', aria:'Acerto nas 30 do dia'})}</div>
+    <div class="section"><h3>Evolução das questões do dia</h3>${lineChart(dailyEvo, {ref:70, refLabel:'meta 70%', aria:'Acerto nas questões do dia'})}</div>
     <div class="section"><h3>Desempenho por especialidade</h3>${[...byArea.entries()].sort((a,b)=>a[0]-b[0]).map(([k,g]) => hbar(A.areas[k].label, g.ok, g.n)).join('')}</div>
     <div class="section"><h3>Desempenho por subárea</h3>${matRows.map(r => hbar(r.lab, r.ok, r.n)).join('')}</div>
     <div class="section grid2">
@@ -1837,7 +2282,7 @@ function pAjustes(){
     <div class="section"><h3>Aparência</h3><div class="row">${[['','Automático'],['light','Claro'],['dark','Escuro']].map(([k,t]) => `<button class="chip" data-th="${k}" aria-pressed="${(S.set.theme||'')===k}">${t}</button>`).join('')}</div></div>
     <div class="section"><h3>Backup</h3><div class="row"><button class="btn" id="exp">Exportar progresso (.json)</button><label class="btn" style="display:inline-block">Importar backup<input type="file" id="imp" accept="application/json" hidden></label></div></div>
     <div class="section"><h3>Atalhos de teclado</h3><p class="muted small"><span class="kbd">A</span> <span class="kbd">B</span> <span class="kbd">C</span> <span class="kbd">D</span> escolhem a alternativa · <span class="kbd">Enter</span> responde e avança · <span class="kbd">←</span> <span class="kbd">→</span> navegam.</p></div>
-    <div class="section"><h3>Sobre o banco</h3><p class="muted small">${Q.length} questões das provas de acesso direto da Residência Médica UERJ (CEPUERJ) de 2022 a 2026, com texto, alternativas e figuras das provas oficiais e gabarito pós-recurso. ${Q.filter(q=>!valid(q)).length} questões anuladas ficam fora das 30 do dia, dos simulados e das estatísticas. Especialidade, subárea e tema seguem a sua análise das provas. A dificuldade é uma estimativa do mentor, e as explicações foram escritas para estudo, não fazem parte da prova.</p></div>
+    <div class="section"><h3>Sobre o banco</h3><p class="muted small">${Q.length} questões das provas de acesso direto da Residência Médica UERJ (CEPUERJ) de 2022 a 2026, com texto, alternativas e figuras das provas oficiais e gabarito pós-recurso. ${Q.filter(q=>!valid(q)).length} questões anuladas ficam fora das questões do dia, dos simulados e das estatísticas. Especialidade, subárea e tema seguem a sua análise das provas. A dificuldade é uma estimativa do mentor, e as explicações foram escritas para estudo, não fazem parte da prova.</p></div>
     <div class="section"><h3>Instalar como app</h3><p class="muted small" id="pwaTxt">${pwaHelp()}</p>${PWA.prompt ? '<button class="btn" id="pwaBtn">Instalar Banco UERJ</button>' : ''}</div>
     <div class="section"><h3>Marca-texto</h3><p class="muted small">Selecione um trecho do enunciado ou de uma alternativa e toque em <strong>Marcar</strong>. Toque numa marcação para apagá-la. As marcações ficam salvas por questão.</p></div>
     <div class="section"><div class="row"><button class="btn" id="logout2">Sair / trocar usuário</button><button class="btn ghost" id="reset" style="color:var(--bad)">Apagar todo o progresso</button></div></div>
@@ -1860,6 +2305,7 @@ document.addEventListener('mousemove', e => { const t = e.target.closest && e.ta
 /* extra routes */
 const _render = render;
 render = function(){ if(route.page === 'simrun'){ renderNav(); pSimRun(); return; } _render(); };
+let SUPPRESS_CLICK = false;
 /* ---------- marca-texto (cores), texto na explicação e caneta ---------- */
 let CURQ = null;
 const hasSel = () => { const s = window.getSelection(); return !!s && String(s).trim().length > 0; };
@@ -1943,7 +2389,7 @@ function syncTools(){
 }
 function setTool(t, quiet){
   TOOL = t; HL_MODE = t === 'hl'; lsSet('uerj_hlmode', HL_MODE ? '1' : '0');
-  syncTools(); hideBar(); closeTn(true); if(typeof checkFloat === 'function') checkFloat();
+  resetGesture(); syncTools(); hideBar(); closeTn(true); if(typeof checkFloat === 'function') checkFloat();
   if(quiet) return;
   if(t === 'hl') toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
   if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
@@ -2064,7 +2510,10 @@ function tnOffset(host, ca){
 }
 
 /* cliques: anotação de texto > ferramenta ativa > marcação */
+let LAST_PT = 'mouse';
+document.addEventListener('pointerdown', e => { LAST_PT = e.pointerType; }, true);
 document.addEventListener('click', e => {
+  if(SUPPRESS_CLICK){ SUPPRESS_CLICK = false; e.stopPropagation(); e.preventDefault(); return; }
   if(!e.target.closest) return;
   const chip = e.target.closest('#view .tn');
   if(chip && TOOL !== 'pen' && TOOL !== 'eraser'){
@@ -2082,7 +2531,7 @@ document.addEventListener('click', e => {
     paintMarks(); editTn(sc, k, id);
     return;
   }
-  if((TOOL === 'pen' || TOOL === 'eraser') && e.target.closest('#view [data-mk], #view .ink-ov, #view .stem, #view .ctx, #view .alt, #view .rv-body, #view .fb')){ e.stopPropagation(); e.preventDefault(); return; }
+  if((TOOL === 'pen' || TOOL === 'eraser') && !(LAST_PT === 'touch' && STYLUS) && !e.target.closest(INTERACTIVE) && e.target.closest('#view [data-mk], #view .ink-ov, #view .stem, #view .ctx, #view .alt')){ e.stopPropagation(); e.preventDefault(); return; }
   const mk = e.target.closest('mark.hl');
   if(mk && !hasSel()){
     e.stopPropagation(); e.preventDefault();
@@ -2099,33 +2548,36 @@ $('#hlAdd').onclick = () => { if(hlPending) addMark(hlPending.sc, hlPending.key,
 $('#hlDel').onclick = () => { if(hlPending) delMark(hlPending.sc, hlPending.key, hlPending.a, hlPending.b); };
 window.addEventListener('scroll', () => { if(!hlbar.hidden) hideBar(); }, {passive: true});
 
-/* caneta: traço suave com espessura variável (pressão da caneta ou velocidade), rejeição da palma e borracha */
-const PEN_SIZE = 3.4;
-let STYLUS = lsGet('uerj_stylus') === '1'; /* já usou caneta stylus neste aparelho: dedo/palma não desenham, só rolam */
+/* caneta: traço suave e sensível (pressão da stylus ou velocidade), rejeição da palma, borracha e marca-texto por deslize */
+const PEN_SIZE = 2.4;
+let STYLUS = lsGet('uerj_stylus') === '1'; /* já usou caneta stylus neste aparelho: dedo/palma não riscam, só rolam e apagam */
 function markStylus(){ if(!STYLUS){ STYLUS = true; lsSet('uerj_stylus', '1'); } document.body.classList.add('stylus'); }
 if(STYLUS) document.body.classList.add('stylus');
 /* contorno preenchido do traço (pontas arredondadas e afinadas), com curvas suaves entre os pontos */
 function strokePath(st, s){
   const P = [], p = st.p, pr = st.pr;
   for(let i = 0; i < p.length; i += 2) P.push([p[i] * s, p[i + 1] * s, pr ? pr[i / 2] / 100 : .5]);
-  const size = PEN_SIZE * s, n = P.length;
+  const size = (st.z || 3.4) * s, n = P.length;
   if(!n) return '';
-  if(n === 1){ const [x, y] = P[0], r = size * .55; return `M${x - r},${y}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0Z`; }
-  /* suavização leve da linha central (média móvel) */
-  const C = P.map((q, i) => { if(i === 0 || i === n - 1) return q; const a = P[i - 1], b = P[i + 1]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4, q[2]]; });
+  let len = 0; const cum = [0]; for(let i = 1; i < n; i++){ len += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); cum.push(len); }
+  if(n === 1 || len < size * .6){ /* pingo (ex.: o ponto do "i") */
+    const [x, y] = P[0], r = Math.max(.9, size * (.35 + .4 * P[0][2]));
+    return `M${(x - r).toFixed(1)},${y.toFixed(1)}a${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(2 * r).toFixed(1)},0a${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(-2 * r).toFixed(1)},0Z`;
+  }
+  /* traço do dedo/mouse ganha suavização da linha central; o da stylus fica fiel ao gesto (letras pequenas) */
+  const C = st.sm ? P.map((q, i) => { if(i === 0 || i === n - 1) return q; const a = P[i - 1], b = P[i + 1]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4, q[2]]; }) : P;
   const L = [], R = [];
-  let len = 0; const cum = [0]; for(let i = 1; i < n; i++){ len += Math.hypot(C[i][0] - C[i - 1][0], C[i][1] - C[i - 1][1]); cum.push(len); }
-  const tap = Math.min(len / 3, size * 2.2);
+  const tap = Math.min(len / 4, size * 1.6);
   for(let i = 0; i < n; i++){
     const a = C[Math.max(0, i - 1)], b = C[Math.min(n - 1, i + 1)];
     let dx = b[0] - a[0], dy = b[1] - a[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
-    const ta = tap ? Math.min(1, .35 + .65 * Math.min(cum[i], len - cum[i]) / tap) : 1;
-    const r = size / 2 * (.45 + 1.1 * C[i][2]) * ta;
+    const ta = tap ? Math.min(1, .45 + .55 * Math.min(cum[i], len - cum[i]) / tap) : 1;
+    const r = size / 2 * (.5 + 1.0 * C[i][2]) * ta;
     L.push([C[i][0] - dy * r, C[i][1] + dx * r]); R.push([C[i][0] + dy * r, C[i][1] - dx * r]);
   }
-  const cap = (c, from, to, out) => { const ang0 = Math.atan2(from[1] - c[1], from[0] - c[0]), rr = Math.hypot(from[0] - c[0], from[1] - c[1]); for(let k = 1; k < 6; k++){ const t = ang0 - Math.PI * k / 6; out.push([c[0] + Math.cos(t) * rr, c[1] + Math.sin(t) * rr]); } };
+  const cap = (c, from, out) => { const ang0 = Math.atan2(from[1] - c[1], from[0] - c[0]), rr = Math.hypot(from[0] - c[0], from[1] - c[1]); for(let k = 1; k < 6; k++){ const t = ang0 - Math.PI * k / 6; out.push([c[0] + Math.cos(t) * rr, c[1] + Math.sin(t) * rr]); } };
   const end = [], start = [];
-  cap(C[n - 1], L[n - 1], R[n - 1], end); cap(C[0], R[0], L[0], start);
+  cap(C[n - 1], L[n - 1], end); cap(C[0], R[0], start);
   const poly = [...L, ...end, ...R.reverse(), ...start];
   let dd = `M${poly[0][0].toFixed(1)},${poly[0][1].toFixed(1)} Q`;
   for(let i = 0; i < poly.length; i++){ const [x0, y0] = poly[i], [x1, y1] = poly[(i + 1) % poly.length]; dd += `${x0.toFixed(1)},${y0.toFixed(1)} ${((x0 + x1) / 2).toFixed(1)},${((y0 + y1) / 2).toFixed(1)} `; }
@@ -2133,7 +2585,7 @@ function strokePath(st, s){
 }
 const PEN_HEX = {r: '#D64545', b: '#2F6FD6', g: '#2E9A5B', k: 'currentColor'};
 function paintInk(){
-  document.querySelectorAll('#view .ink-ov').forEach(x => x.remove());
+  document.querySelectorAll('#view .ink-ov:not(.ink-live)').forEach(x => x.remove());
   document.querySelectorAll('#view [data-mk]').forEach(el => {
     const sc = markScope(el); if(!sc) return;
     const list = ((S.ink || {})[sc] || {})[el.dataset.mk]; if(!list || !list.length) return;
@@ -2144,15 +2596,15 @@ function paintInk(){
     an.appendChild(svg);
   });
 }
-/* quais traços estão perto de um ponto da tela (tolerância generosa no toque) */
+/* quais traços estão perto de um ponto da tela */
 function segDist(px, py, ax, ay, bx, by){ const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - ax - t * dx, py - ay - t * dy); }
 function inkHits(x, y, tol){
   const out = [];
-  document.querySelectorAll('#view .ink-ov').forEach(svg => {
+  document.querySelectorAll('#view .ink-ov:not(.ink-live)').forEach(svg => {
     const sc = svg.dataset.sc, k = svg.dataset.k, list = ((S.ink || {})[sc] || {})[k]; if(!list) return;
     const R = svg.parentElement.getBoundingClientRect(), W = R.width || 1;
     list.forEach((st, i) => {
-      const s = W / (st.w || W), px = (x - R.left) / s, py = (y - R.top) / s, t = tol / s + PEN_SIZE, p = st.p;
+      const s = W / (st.w || W), px = (x - R.left) / s, py = (y - R.top) / s, t = tol / s + (st.z || 3.4) / 2, p = st.p;
       for(let j = 0; j < p.length; j += 2){ const ax = p[j], ay = p[j + 1], bx = j + 2 < p.length ? p[j + 2] : ax, by = j + 2 < p.length ? p[j + 3] : ay; if(segDist(px, py, ax, ay, bx, by) <= t){ out.push({sc, k, i}); break; } }
     });
   });
@@ -2162,99 +2614,158 @@ function delStrokes(hits){
   if(!hits.length) return false;
   const by = {}; hits.forEach(h => { (by[h.sc + '\u0001' + h.k] = by[h.sc + '\u0001' + h.k] || {sc: h.sc, k: h.k, ix: new Set()}).ix.add(h.i); });
   for(const g of Object.values(by)){
-    const a = S.ink[g.sc]; a[g.k] = a[g.k].filter((_, i) => !g.ix.has(i));
+    const a = (S.ink || {})[g.sc]; if(!a || !a[g.k]) continue;
+    a[g.k] = a[g.k].filter((_, i) => !g.ix.has(i));
     if(!a[g.k].length) delete a[g.k]; if(!Object.keys(a).length) delete S.ink[g.sc];
   }
   save(); paintInk(); return true;
 }
 const ER_RING = document.createElement('div'); ER_RING.className = 'er-ring'; ER_RING.hidden = true; document.body.appendChild(ER_RING);
-let pen = null, fscroll = null;
-const penTol = e => e.pointerType === 'touch' ? 24 : e.pointerType === 'pen' ? 12 : 9;
-function penTarget(e){
-  if(!e.target.closest || !e.target.closest('#view') || e.target.closest('.tbx,button,input,textarea,[contenteditable],.note-wrap,a')) return null;
-  let host = e.target.closest('[data-mk]');
-  if(!host){ const inner = e.target.querySelector && e.target.querySelector(':scope > [data-mk]'); if(inner) host = inner; }
-  if(!host){ const ov = e.target.closest('.ink-ov'); if(ov) host = ov.parentElement.querySelector('[data-mk]') || ov.parentElement.closest('[data-mk]'); }
-  return host;
+function showRing(x, y, tol){ ER_RING.hidden = false; ER_RING.style.width = ER_RING.style.height = tol * 2 + 'px'; ER_RING.style.left = x - tol + 'px'; ER_RING.style.top = y - tol + 'px'; }
+const isWide = e => (e.width || 0) > 38 || (e.height || 0) > 38;   /* palma */
+const INTERACTIVE = '.tbx,.tb-float,button,input,select,textarea,label,[contenteditable],.note-wrap,a,summary,.chip,[data-q],[data-dq],.cutb,#hlbar,.tn-in';
+function inkHost(t){
+  if(!t || !t.closest || !t.closest('#view') || t.closest(INTERACTIVE)) return null;
+  let host = t.closest('[data-mk]');
+  if(!host){ const inner = t.querySelector && t.querySelector(':scope > [data-mk]'); if(inner) host = inner; }
+  if(!host){ const ov = t.closest('.ink-ov'); if(ov) host = ov.parentElement.matches('[data-mk]') ? ov.parentElement : ov.parentElement.querySelector('[data-mk]'); }
+  return host && markScope(host) ? host : null;
 }
-/* rejeição da palma: com stylus detectada, só a stylus desenha; toques largos (palma) nunca desenham; um traço por vez */
-function palmReject(e){
-  if(e.pointerType === 'pen'){ markStylus(); return false; }
-  if(e.pointerType === 'touch'){
-    if(STYLUS) return true;
-    if((e.width || 0) > 38 || (e.height || 0) > 38) return true;
-  }
-  return false;
+
+/* estado do gesto em andamento (um por vez). Tudo é reiniciado com segurança se algo se perder. */
+let G = null;
+function resetGesture(){
+  if(G){ clearTimeout(G.lp); if(G.svg) G.svg.remove(); if(G.kind === 'hl' && G.host) paintMarks(); }
+  G = null; ER_RING.hidden = true;
 }
+window.addEventListener('blur', resetGesture);
+document.addEventListener('visibilitychange', () => { if(document.hidden) resetGesture(); });
+function capture(e){ try{ e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); }catch(_){} }
+
 document.addEventListener('pointerdown', e => {
-  if((TOOL !== 'pen' && TOOL !== 'eraser') || e.button > 0) return;
-  if(pen){ return; }
-  const host = penTarget(e); if(!host) return;
-  if(palmReject(e)){
-    /* dedo com caneta stylus em uso: rola a página manualmente (a área de escrita não rola sozinha) */
-    if(e.pointerType === 'touch' && STYLUS && !((e.width || 0) > 38 || (e.height || 0) > 38)) fscroll = {pid: e.pointerId, y: e.clientY};
+  if(e.button > 0) return;
+  const pen = TOOL === 'pen', er = TOOL === 'eraser', hl = TOOL === 'hl' && e.pointerType !== 'mouse';
+  if(!pen && !er && !hl) return;
+  if(G){
+    /* outro dedo/palma enquanto escreve: ignora. Gesto "perdido" (sem eventos há um tempo): descarta e começa de novo */
+    if(e.pointerId !== G.pid && e.timeStamp - G.t < 700) return;
+    resetGesture();
+  }
+  const host = inkHost(e.target);
+  if(!host) return;
+  if(e.pointerType === 'pen') markStylus();
+  if(e.pointerType === 'touch' && isWide(e)) return;                 /* palma nunca faz nada */
+  if(hl){ startHl(e, host); return; }
+  /* com stylus em uso, o dedo não risca: arrasta = rola a página; toque = apaga o traço mais perto */
+  if(e.pointerType === 'touch' && STYLUS){
+    G = {kind: 'finger', pid: e.pointerId, t: e.timeStamp, x0: e.clientX, y0: e.clientY, y: e.clientY, moved: 0};
     return;
   }
-  e.preventDefault();
-  if(TOOL === 'eraser'){
-    pen = {erase: true, pid: e.pointerId, tol: penTol(e)};
-    showRing(e, pen.tol); delStrokes(inkHits(e.clientX, e.clientY, pen.tol));
+  e.preventDefault(); capture(e);
+  const tol = e.pointerType === 'touch' ? 24 : e.pointerType === 'pen' ? 12 : 9;
+  if(er){
+    G = {kind: 'erase', pid: e.pointerId, t: e.timeStamp, tol};
+    showRing(e.clientX, e.clientY, tol); delStrokes(inkHits(e.clientX, e.clientY, tol));
     return;
   }
-  const sc = markScope(host); if(!sc) return;
+  const sc = markScope(host);
   const an = inkAnchor(host); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
   const R = an.getBoundingClientRect();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov ink-live');
   const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path'); pa.setAttribute('fill', PEN_HEX[PEN_COLOR]); svg.appendChild(pa); an.appendChild(svg);
-  const x = e.clientX - R.left, y = e.clientY - R.top;
-  pen = {pid: e.pointerId, type: e.pointerType, sc, k: host.dataset.mk, an, R, svg, pa, p: [x, y], pr: [], sx: e.clientX, sy: e.clientY, moved: 0, lx: x, ly: y, lt: e.timeStamp, lp: .5, tol: penTol(e)};
-  pen.pr.push(Math.round(penPressure(e, 0) * 100));
+  const x = e.clientX - R.left, y = e.clientY - R.top, isPen = e.pointerType === 'pen';
+  G = {kind: 'pen', pid: e.pointerId, t: e.timeStamp, type: e.pointerType, sc, k: host.dataset.mk, R, svg, pa, p: [x, y], pr: [], x0: e.clientX, y0: e.clientY, moved: 0, lx: x, ly: y, lt: e.timeStamp, lp: .5, tol,
+       z: isPen ? PEN_SIZE : 3.2, sm: !isPen, follow: isPen ? .92 : .7};
+  G.pr.push(Math.round(penPressure(e, 0) * 100));
+  draw();
+  /* segurar parado sobre um traço por meio segundo = apagar esse traço */
+  G.lp = setTimeout(() => {
+    if(!G || G.kind !== 'pen' || G.moved > 6) return;
+    const hits = inkHits(G.x0, G.y0, G.tol);
+    if(hits.length){ const g = G; G = null; g.svg.remove(); delStrokes([hits[hits.length - 1]]); if(navigator.vibrate) try{ navigator.vibrate(12); }catch(_){} toast('Traço apagado.'); }
+  }, 520);
 }, {capture: true, passive: false});
 function penPressure(e, speed){
-  if(e.pointerType === 'pen' && e.pressure > 0) return Math.max(.08, Math.min(1, e.pressure));
+  if(e.pointerType === 'pen' && e.pressure > 0) return Math.max(.1, Math.min(1, e.pressure));
   const target = .78 - Math.min(.5, speed * .28); /* mais rápido = mais fino, como uma caneta real */
-  pen.lp = pen.lp + (target - pen.lp) * .35; return pen.lp;
+  G.lp = G.lp + (target - G.lp) * .35; return G.lp;
 }
-function showRing(e, tol){ ER_RING.hidden = false; ER_RING.style.width = ER_RING.style.height = tol * 2 + 'px'; ER_RING.style.left = e.clientX - tol + 'px'; ER_RING.style.top = e.clientY - tol + 'px'; }
+let rafD = 0;
+function draw(){ if(rafD) return; rafD = requestAnimationFrame(() => { rafD = 0; if(G && G.kind === 'pen') G.pa.setAttribute('d', strokePath({p: G.p, pr: G.pr, z: G.z, sm: G.sm}, 1)); }); }
 document.addEventListener('pointermove', e => {
-  if(fscroll && e.pointerId === fscroll.pid){ window.scrollBy(0, fscroll.y - e.clientY); fscroll.y = e.clientY; return; }
-  if(!pen || e.pointerId !== pen.pid) return;
+  if(!G || e.pointerId !== G.pid) return;
+  G.t = e.timeStamp;
+  if(G.kind === 'finger'){ const dy = G.y - e.clientY; G.moved += Math.abs(dy) + Math.abs(e.movementX || 0); window.scrollBy(0, dy); G.y = e.clientY; return; }
+  if(G.kind === 'hl'){ moveHl(e); return; }
   e.preventDefault();
-  if(pen.erase){ showRing(e, pen.tol); delStrokes(inkHits(e.clientX, e.clientY, pen.tol)); return; }
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  if(G.kind === 'erase'){ showRing(e.clientX, e.clientY, G.tol); delStrokes(inkHits(e.clientX, e.clientY, G.tol)); return; }
+  const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
   for(const ev of (evs.length ? evs : [e])){
-    const rx = ev.clientX - pen.R.left, ry = ev.clientY - pen.R.top;
-    /* estabilização: o traço segue o dedo/caneta com leve atraso, eliminando tremidos */
-    const x = pen.lx + (rx - pen.lx) * .55, y = pen.ly + (ry - pen.ly) * .55;
-    const dist = Math.hypot(x - pen.lx, y - pen.ly); if(dist < 1.2) continue;
-    const dt = Math.max(1, ev.timeStamp - pen.lt);
-    pen.moved += dist; pen.lx = x; pen.ly = y; pen.lt = ev.timeStamp;
-    pen.p.push(x, y); pen.pr.push(Math.round(penPressure(ev, dist / dt) * 100));
+    const rx = ev.clientX - G.R.left, ry = ev.clientY - G.R.top;
+    const x = G.lx + (rx - G.lx) * G.follow, y = G.ly + (ry - G.ly) * G.follow;
+    const dist = Math.hypot(x - G.lx, y - G.ly); if(dist < .35) continue;
+    const dt = Math.max(1, ev.timeStamp - G.lt);
+    G.moved += dist; G.lx = x; G.ly = y; G.lt = ev.timeStamp;
+    G.p.push(x, y); G.pr.push(Math.round(penPressure(ev, dist / dt) * 100));
   }
-  pen.pa.setAttribute('d', strokePath({p: pen.p, pr: pen.pr}, 1));
+  if(G.moved > 6) clearTimeout(G.lp);
+  draw();
 }, {passive: false});
-function endPen(e, cancel){
-  if(fscroll && e && e.pointerId === fscroll.pid){ fscroll = null; return; }
-  if(!pen || (e && e.pointerId !== pen.pid)) return;
-  const P = pen; pen = null; ER_RING.hidden = true;
-  if(P.erase) return;
-  P.svg.remove();
-  const tapMove = Math.abs(e.clientX - P.sx) + Math.abs(e.clientY - P.sy);
+function endGesture(e, cancel){
+  if(!G || e.pointerId !== G.pid) return;
+  const g = G; G = null; clearTimeout(g.lp); ER_RING.hidden = true;
+  if(g.kind === 'finger'){ if(!cancel && g.moved < 8){ const hits = inkHits(g.x0, g.y0, 26); if(hits.length){ delStrokes([hits[hits.length - 1]]); SUPPRESS_CLICK = true; } } return; }
+  if(g.kind === 'hl'){ endHl(g, cancel); return; }
+  if(g.kind === 'erase') return;
+  g.svg.remove();
   if(cancel) return;
-  if(tapMove < 7 && P.moved < 7){ /* toque rápido perto de um traço apaga (sem precisar acertar a linha fina) */
-    const hits = inkHits(P.sx, P.sy, P.tol); if(hits.length) delStrokes([hits[hits.length - 1]]);
-    return;
-  }
-  const rx = e.clientX - P.R.left, ry = e.clientY - P.R.top; P.p.push(rx, ry); P.pr.push(P.pr[P.pr.length - 1] || 50);
-  S.ink = S.ink || {}; const a = S.ink[P.sc] = S.ink[P.sc] || {};
-  (a[P.k] = a[P.k] || []).push({c: PEN_COLOR, w: Math.round(P.R.width), p: P.p.map(v => Math.round(v * 10) / 10), pr: P.pr});
+  const rx = e.clientX - g.R.left, ry = e.clientY - g.R.top;
+  if(Math.hypot(rx - g.lx, ry - g.ly) > .35){ g.p.push(rx, ry); g.pr.push(g.pr[g.pr.length - 1] || 50); }
+  S.ink = S.ink || {}; const a = S.ink[g.sc] = S.ink[g.sc] || {};
+  (a[g.k] = a[g.k] || []).push({c: PEN_COLOR, w: Math.round(g.R.width), z: g.z, sm: g.sm ? 1 : 0, p: g.p.map(v => Math.round(v * 10) / 10), pr: g.pr});
   save(); paintInk();
 }
-document.addEventListener('pointerup', e => endPen(e, false));
-document.addEventListener('pointercancel', e => endPen(e, true));
-/* iPad/celular com caneta: impedir que a stylus role a página enquanto escreve (dedos continuam rolando) */
-document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser') && [...e.touches].some(t => t.touchType === 'stylus') && e.target.closest && e.target.closest('#view')){ markStylus(); e.preventDefault(); } }, {passive: false});
-document.addEventListener('touchmove', e => { if(pen) e.preventDefault(); }, {passive: false});
+document.addEventListener('pointerup', e => endGesture(e, false));
+document.addEventListener('pointercancel', e => endGesture(e, true));
+/* iPad/celular: a stylus não rola a página enquanto escreve */
+document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser') && [...e.touches].some(t => t.touchType === 'stylus') && inkHost(e.target)){ markStylus(); e.preventDefault(); } }, {passive: false});
+document.addEventListener('touchmove', e => { if(G && (G.kind === 'pen' || G.kind === 'erase')) e.preventDefault(); }, {passive: false});
+
+/* marca-texto no toque: com o marca-texto ligado, passar o dedo ou a caneta sobre o texto já marca */
+function caretOffset(host, x, y){
+  const ca = caretAt(x, y);
+  if(ca && ca.node && host.contains(ca.node.nodeType === 1 ? ca.node : ca.node.parentElement)) return offsetIn(host, ca.node, ca.off);
+  const r = host.getBoundingClientRect();
+  if(y < r.top || (y <= r.bottom && x < r.left)) return 0;
+  return host.textContent.length;
+}
+function startHl(e, host){
+  const a = caretOffset(host, e.clientX, e.clientY);
+  G = {kind: 'hl', pid: e.pointerId, t: e.timeStamp, host, sc: markScope(host), k: host.dataset.mk, a, b: a, x0: e.clientX, y0: e.clientY, active: false};
+}
+function moveHl(e){
+  const g = G;
+  if(!g.active){ if(Math.abs(e.clientX - g.x0) < 8 && Math.abs(e.clientY - g.y0) < 8) return; g.active = true; }
+  g.b = caretOffset(g.host, e.clientX, e.clientY);
+  const lo = Math.min(g.a, g.b), hi = Math.max(g.a, g.b);
+  const base = ((S.marks[g.sc] || {})[g.k] || []).slice();
+  if(hi > lo) base.push([lo, hi, HL_COLOR]);
+  paintEl(g.host, base, ((S.tnotes || {})[g.sc] || {})[g.k]);
+  g.host._hl = true;
+}
+function endHl(g, cancel){
+  if(!g.active){ return; }   /* foi só um toque: o clique normal cuida (ex.: tocar na marcação apaga) */
+  SUPPRESS_CLICK = true;
+  if(cancel){ paintMarks(); return; }
+  const txt = g.host.textContent, W = /[\wÀ-ÿ%]/;
+  let lo = Math.min(g.a, g.b), hi = Math.max(g.a, g.b);
+  while(lo > 0 && W.test(txt[lo - 1]) && W.test(txt[lo])) lo--;          /* completa a palavra do começo */
+  while(hi < txt.length && W.test(txt[hi - 1] || '') && W.test(txt[hi])) hi++; /* e a do fim */
+  while(lo < hi && /\s/.test(txt[lo])) lo++; while(hi > lo && /\s/.test(txt[hi - 1])) hi--;
+  if(hi - lo < 1){ paintMarks(); return; }
+  addMark(g.sc, g.k, lo, hi);
+}
+document.addEventListener('click', e => { if(SUPPRESS_CLICK){ SUPPRESS_CLICK = false; e.stopPropagation(); e.preventDefault(); } }, true);
 
 /* barra flutuante: quando as ferramentas do topo saem da tela, uma versão compacta fica no canto */
 const tbFloat = document.createElement('div'); tbFloat.className = 'tb-float'; tbFloat.hidden = true; document.body.appendChild(tbFloat);
@@ -2270,6 +2781,19 @@ function checkFloat(){
 let flT = null, flT2 = null;
 window.addEventListener('scroll', () => { if(flT) return; flT = requestAnimationFrame(() => { flT = null; checkFloat(); }); }, {passive: true});
 new MutationObserver(() => { clearTimeout(flT2); flT2 = setTimeout(checkFloat, 60); }).observe(document.getElementById('view'), {childList: true});
+
+
+/* ---------- menu lateral no celular/tablet: abre e fecha (fica aberto no tablet se você quiser) ---------- */
+function setNav(open){
+  document.body.classList.toggle('nav-open', open);
+  $('#menuBtn').setAttribute('aria-expanded', String(open));
+  lsSet('uerj_navopen', open ? '1' : '0');
+}
+$('#menuBtn').onclick = () => setNav(!document.body.classList.contains('nav-open'));
+$('#sideX').onclick = () => setNav(false);
+$('#sideBd').onclick = () => setNav(false);
+document.addEventListener('click', e => { if(e.target.closest && e.target.closest('#side [data-go]') && innerWidth < 700) setNav(false); });
+if(innerWidth <= 900 && innerWidth >= 700 && lsGet('uerj_navopen') === '1') setNav(true);
 
 /* ---------- PWA (instalar como app) ---------- */
 const PWA = {prompt: null};
