@@ -1032,6 +1032,21 @@ function qMeta(q, full){
 /* opts: {mode:'estudo'|'prova', onAnswer(ok), chosen, reveal, nav:{prev,next,label}} */
 /* riscar alternativas descartadas (vale até responder; guardado só durante o uso) */
 const CUT = {};
+/* questão já feita que aparece de novo: esconde (sem apagar) o que você marcou no ENUNCIADO e nas alternativas,
+   para responder sem pista. Ao responder, tudo volta a aparecer. Explicações e Matérias não são afetadas. */
+const QKEYS = /^(x|s|s2|o\d)$/;
+let HIDEQ = null;
+function hideSnapshot(id){
+  const mk = S.marks[id] || {}, ink = (S.ink || {})[id] || {}, tn = (S.tnotes || {})[id] || {};
+  const h = {sc: id, marks: new Set(), ink: new Set(), tn: new Set()};
+  for(const k of Object.keys(mk)) if(QKEYS.test(k)) for(const r of mk[k]) h.marks.add(k + ':' + r.join(','));
+  for(const k of Object.keys(ink)) if(QKEYS.test(k)) for(const st of ink[k]) h.ink.add(st);
+  for(const k of Object.keys(tn)) if(QKEYS.test(k)) for(const z of tn[k]) h.tn.add(z.id);
+  return h;
+}
+const hidM = (sc, k, r) => HIDEQ && HIDEQ.sc === sc && HIDEQ.marks.has(k + ':' + r.join(','));
+const hidI = (sc, st) => HIDEQ && HIDEQ.sc === sc && HIDEQ.ink.has(st);
+const hidT = (sc, z) => HIDEQ && HIDEQ.sc === sc && HIDEQ.tn.has(z.id);
 const CUT_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M16 5.5c-.9-1-2.3-1.5-4-1.5-2.5 0-4.2 1.3-4.2 3.2 0 1.3.8 2.2 2.4 2.8"/><path d="M8 18.5c.9 1 2.4 1.5 4.2 1.5 2.6 0 4.3-1.4 4.3-3.4 0-1-.4-1.8-1.3-2.4"/><path d="M4 12h16"/></svg>';
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('.cutb'); if(!b) return;
@@ -1043,6 +1058,9 @@ document.addEventListener('click', e => {
 }, true);
 function questionHTML(q, o){
   const answered = o.reveal;
+  if(answered){ if(HIDEQ && HIDEQ.sc === q.id) HIDEQ = null; }
+  else if(S.ans[q.id] && S.ans[q.id].length){ if(!HIDEQ || HIDEQ.sc !== q.id){ HIDEQ = hideSnapshot(q.id); delete CUT[q.id]; } }
+  else if(HIDEQ && HIDEQ.sc !== q.id) HIDEQ = null;
   const ch = o.chosen;
   const alts = q.o.map((txt,i) => {
     const Lt = L[i];
@@ -2578,7 +2596,9 @@ function paintEl(el, ranges, notes){
 }
 function inkAnchor(el){ return getComputedStyle(el).display === 'inline' ? el.parentElement : el; }
 function paintMarks(){
-  document.querySelectorAll('#view [data-mk]').forEach(el => { const sc = markScope(el); if(!sc) return; const k = el.dataset.mk; paintEl(el, (S.marks[sc] || {})[k], ((S.tnotes || {})[sc] || {})[k]); });
+  document.querySelectorAll('#view [data-mk]').forEach(el => { const sc = markScope(el); if(!sc) return; const k = el.dataset.mk; let rs = (S.marks[sc] || {})[k], ns = ((S.tnotes || {})[sc] || {})[k];
+    if(HIDEQ && HIDEQ.sc === sc){ rs = rs && rs.filter(r => !hidM(sc, k, r)); ns = ns && ns.filter(z => !hidT(sc, z)); }
+    paintEl(el, rs, ns); });
   paintInk();
 }
 let inkRT; window.addEventListener('resize', () => { clearTimeout(inkRT); inkRT = setTimeout(paintInk, 150); });
@@ -2819,7 +2839,7 @@ function paintInk(){
     const an = inkAnchor(el); if(getComputedStyle(an).position === 'static') an.style.position = 'relative';
     const W = an.getBoundingClientRect().width || 1;
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ink-ov'); svg.dataset.sc = sc; svg.dataset.k = el.dataset.mk;
-    svg.innerHTML = list.map((st, i) => `<path data-i="${i}" d="${strokePath(st, W / (st.w || W))}" fill="${PEN_HEX[st.c] || PEN_HEX.r}"/>`).join('');
+    svg.innerHTML = list.map((st, i) => hidI(sc, st) ? '' : `<path data-i="${i}" d="${strokePath(st, W / (st.w || W))}" fill="${PEN_HEX[st.c] || PEN_HEX.r}"/>`).join('');
     an.appendChild(svg);
   });
 }
@@ -2831,6 +2851,7 @@ function inkHits(x, y, tol){
     const sc = svg.dataset.sc, k = svg.dataset.k, list = ((S.ink || {})[sc] || {})[k]; if(!list) return;
     const R = svg.parentElement.getBoundingClientRect(), W = R.width || 1;
     list.forEach((st, i) => {
+      if(hidI(sc, st)) return;
       const s = W / (st.w || W), px = (x - R.left) / s, py = (y - R.top) / s, t = tol / s + (st.z || 3.4) / 2, p = st.p;
       for(let j = 0; j < p.length; j += 2){ const ax = p[j], ay = p[j + 1], bx = j + 2 < p.length ? p[j + 2] : ax, by = j + 2 < p.length ? p[j + 3] : ay; if(segDist(px, py, ax, ay, bx, by) <= t){ out.push({sc, k, i}); break; } }
     });
@@ -3046,9 +3067,9 @@ function moveHl(e){
   if(!g.active){ if(Math.abs(e.clientX - g.x0) < (g.pen ? 4 : 8) && Math.abs(e.clientY - g.y0) < (g.pen ? 4 : 8)) return; g.active = true; }
   g.b = caretOffset(g.host, e.clientX, e.clientY);
   const lo = Math.min(g.a, g.b), hi = Math.max(g.a, g.b);
-  const base = ((S.marks[g.sc] || {})[g.k] || []).slice();
+  const base = ((S.marks[g.sc] || {})[g.k] || []).filter(r => !hidM(g.sc, g.k, r));
   if(hi > lo) base.push([lo, hi, HL_COLOR]);
-  paintEl(g.host, base, ((S.tnotes || {})[g.sc] || {})[g.k]);
+  paintEl(g.host, base, (((S.tnotes || {})[g.sc] || {})[g.k] || []).filter(z => !hidT(g.sc, z)));
   g.host._hl = true;
 }
 function endHl(g, cancel){
