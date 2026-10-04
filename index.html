@@ -453,6 +453,8 @@ body.txtmode #view .tn{cursor:pointer}
 .ink-ov{color:var(--ink)}
 
 body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .key, body.penmode #view p:has(> span[data-mk]){cursor:crosshair;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+/* com caneta stylus: o dedo rola a página normalmente (rolagem nativa); quem bloqueia a rolagem é só a caneta */
+body.penmode.stylus #view [data-mk], body.penmode.stylus #view .stem, body.penmode.stylus #view .ctx, body.penmode.stylus #view .alt, body.penmode.stylus #view .key, body.penmode.stylus #view p:has(> span[data-mk]){touch-action:pan-x pan-y pinch-zoom}
 @media (pointer: coarse){ body.hlmode #view [data-mk], body.hlmode #view .stem, body.hlmode #view .ctx, body.hlmode #view .alt, body.hlmode #view .key, body.hlmode #view p:has(> span[data-mk]){touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none} }
 .rv-mk{display:block;position:relative}
 
@@ -2973,7 +2975,7 @@ function draw(){ if(rafD) return; rafD = requestAnimationFrame(() => { rafD = 0;
 document.addEventListener('pointermove', e => {
   if(!G || e.pointerId !== G.pid) return;
   G.t = e.timeStamp;
-  if(G.kind === 'finger'){ const dy = G.y - e.clientY; G.moved += Math.abs(dy) + Math.abs(e.movementX || 0); window.scrollBy(0, dy); G.y = e.clientY; return; }
+  if(G.kind === 'finger'){ G.moved += Math.abs(e.clientY - G.y) + Math.abs(e.movementX || 0); G.y = e.clientY; return; }
   if(G.kind === 'hl'){ moveHl(e); return; }
   if(G.kind === 'hlerase'){ e.preventDefault(); showRing(e.clientX, e.clientY, G.tol); hlEraseAt(e.clientX, e.clientY, G.tol); return; }
   e.preventDefault();
@@ -3008,7 +3010,16 @@ function endGesture(e, cancel){
 document.addEventListener('pointerup', e => endGesture(e, false));
 document.addEventListener('pointercancel', e => endGesture(e, true));
 /* iPad/celular: a stylus não rola a página enquanto escreve */
-document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser' || TOOL === 'hl') && [...e.touches].some(t => t.touchType === 'stylus') && inkHost(e.target)){ markStylus(); e.preventDefault(); } }, {passive: false});
+document.addEventListener('touchstart', e => {
+  if(TOOL !== 'pen' && TOOL !== 'eraser' && TOOL !== 'hl') return;
+  const isPen = [...e.changedTouches].some(t => t.touchType === 'stylus') || LAST_PT === 'pen';
+  if(!isPen || !e.target.closest || !e.target.closest('#view') || e.target.closest(INTERACTIVE)) return;
+  markStylus(); if(e.cancelable) e.preventDefault();
+}, {passive: false});
+document.addEventListener('touchmove', e => {
+  if(TOOL !== 'pen' && TOOL !== 'eraser') return;
+  if(([...e.changedTouches].some(t => t.touchType === 'stylus') || LAST_PT === 'pen') && e.cancelable && e.target.closest && e.target.closest('#view')) e.preventDefault();
+}, {passive: false});
 document.addEventListener('touchmove', e => {
   if(!G) return;
   if(G.kind === 'pen' || G.kind === 'erase' || G.kind === 'hlerase'){ e.preventDefault(); return; }
