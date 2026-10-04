@@ -1,5 +1,5 @@
 /* Banco UERJ: service worker (abre offline e se atualiza sozinho) */
-const CACHE = 'banco-uerj-v21';
+const CACHE = 'banco-uerj-v22';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
