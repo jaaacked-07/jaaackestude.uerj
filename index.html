@@ -2612,9 +2612,9 @@ function setTool(t, quiet){
   TOOL = t; HL_MODE = t === 'hl'; lsSet('uerj_hlmode', HL_MODE ? '1' : '0');
   resetGesture(); syncTools(); hideBar(); closeTn(true); if(typeof checkFloat === 'function') checkFloat();
   if(quiet) return;
-  if(t === 'hl') toast(matchMedia('(pointer: coarse)').matches ? 'Marca-texto ligado: passe a caneta sobre o texto, ou deslize o dedo para o lado. Para cima e para baixo, o dedo rola a página. Toque na marcação para apagar.' : 'Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
+  if(t === 'hl') toast(matchMedia('(pointer: coarse)').matches ? 'Marca-texto ligado: passe a caneta sobre o texto, ou deslize o dedo para o lado. Para cima e para baixo, o dedo rola a página. Para apagar: segure meio segundo sobre a marcação (e arraste para apagar outras) ou toque nela.' : 'Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
   if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
-  if(t === 'pen') toast(STYLUS ? 'Caneta: escreva com a caneta; o dedo e a palma não riscam (o dedo rola a página). Toque perto de um traço para apagar.' : 'Caneta: desenhe para circular. Toque perto de um traço para apagar.');
+  if(t === 'pen') toast(STYLUS ? 'Caneta: escreva com a caneta; o dedo e a palma não riscam (o dedo rola a página). Para apagar: segure meio segundo perto do traço (só apaga caneta).' : 'Caneta: desenhe para circular. Toque perto de um traço para apagar.');
   if(t === 'eraser') toast('Borracha: passe por cima dos traços que quer apagar.');
 }
 function setHlMode(on){ setTool(on ? 'hl' : ''); }
@@ -2925,6 +2925,7 @@ document.addEventListener('pointermove', e => {
   G.t = e.timeStamp;
   if(G.kind === 'finger'){ const dy = G.y - e.clientY; G.moved += Math.abs(dy) + Math.abs(e.movementX || 0); window.scrollBy(0, dy); G.y = e.clientY; return; }
   if(G.kind === 'hl'){ moveHl(e); return; }
+  if(G.kind === 'hlerase'){ e.preventDefault(); showRing(e.clientX, e.clientY, G.tol); hlEraseAt(e.clientX, e.clientY, G.tol); return; }
   e.preventDefault();
   if(G.kind === 'erase'){ showRing(e.clientX, e.clientY, G.tol); delStrokes(inkHits(e.clientX, e.clientY, G.tol)); return; }
   const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
@@ -2944,6 +2945,7 @@ function endGesture(e, cancel){
   const g = G; G = null; clearTimeout(g.lpT); ER_RING.hidden = true; document.body.classList.remove('tmp-erase');
   if(g.kind === 'finger'){ if(!cancel && g.moved < 8){ const hits = inkHits(g.x0, g.y0, 26); if(hits.length){ delStrokes([hits[hits.length - 1]]); SUPPRESS_CLICK = true; } } return; }
   if(g.kind === 'hl'){ endHl(g, cancel); return; }
+  if(g.kind === 'hlerase'){ SUPPRESS_CLICK = true; return; }
   if(g.kind === 'erase') return;
   g.svg.remove();
   if(cancel) return;
@@ -2959,7 +2961,7 @@ document.addEventListener('pointercancel', e => endGesture(e, true));
 document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser' || TOOL === 'hl') && [...e.touches].some(t => t.touchType === 'stylus') && inkHost(e.target)){ markStylus(); e.preventDefault(); } }, {passive: false});
 document.addEventListener('touchmove', e => {
   if(!G) return;
-  if(G.kind === 'pen' || G.kind === 'erase'){ e.preventDefault(); return; }
+  if(G.kind === 'pen' || G.kind === 'erase' || G.kind === 'hlerase'){ e.preventDefault(); return; }
   if(G.kind === 'hl' && e.cancelable){
     const t = e.touches[0]; if(!t) return;
     const dx = Math.abs(t.clientX - G.x0), dy = Math.abs(t.clientY - G.y0);
@@ -3008,9 +3010,32 @@ function startHl(e, host){
   const a = caretOffset(host, e.clientX, e.clientY);
   G = {kind: 'hl', pid: e.pointerId, t: e.timeStamp, host, sc: markScope(host), k: host.dataset.mk, a, b: a, x0: e.clientX, y0: e.clientY, active: false, pen: e.pointerType === 'pen' || STYLUS && e.pointerType !== 'touch'};
   if(G.pen){ e.preventDefault(); capture(e); }
+  /* segurar parado meio segundo = borracha do marca-texto (só apaga marcações, nunca a caneta);
+     arrastando sem soltar, apaga as marcações por onde passar. Ao soltar, volta a ser marca-texto. */
+  G.lpT = setTimeout(() => {
+    if(!G || G.kind !== 'hl' || G.active) return;
+    const tol = G.pen ? 16 : 22;
+    G = {kind: 'hlerase', pid: G.pid, t: G.t, tol, x0: G.x0, y0: G.y0, pen: true, lock: true};
+    document.body.classList.add('tmp-erase'); showRing(G.x0, G.y0, tol); hlEraseAt(G.x0, G.y0, tol);
+    if(navigator.vibrate) try{ navigator.vibrate(12); }catch(_){}
+  }, 500);
+}
+/* apaga a marcação de marca-texto sob o ponto (com uma folga ao redor) */
+function hlEraseAt(x, y, tol){
+  const seen = new Set();
+  for(const [dx, dy] of [[0, 0], [-tol, 0], [tol, 0], [0, -tol / 2], [0, tol / 2], [-tol / 2, -tol / 2], [tol / 2, tol / 2]]){
+    const el = document.elementFromPoint(x + dx, y + dy);
+    const mk = el && el.closest && el.closest('#view mark.hl');
+    if(!mk || seen.has(mk.dataset.r)) continue;
+    seen.add(mk.dataset.r);
+    const host = mk.closest('[data-mk]'), sc = host && markScope(host); if(!sc) continue;
+    const [a, b] = mk.dataset.r.split('-').map(Number);
+    delMark(sc, host.dataset.mk, a, b); return;
+  }
 }
 function moveHl(e){
   const g = G;
+  if(Math.abs(e.clientX - g.x0) > 6 || Math.abs(e.clientY - g.y0) > 6) clearTimeout(g.lpT);
   g.t = e.timeStamp;
   if(!g.active){ if(Math.abs(e.clientX - g.x0) < (g.pen ? 4 : 8) && Math.abs(e.clientY - g.y0) < (g.pen ? 4 : 8)) return; g.active = true; }
   g.b = caretOffset(g.host, e.clientX, e.clientY);
