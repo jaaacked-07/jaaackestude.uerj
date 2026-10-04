@@ -449,7 +449,7 @@ body.txtmode #view .tn{cursor:pointer}
 .ink-ov{color:var(--ink)}
 
 body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx, body.penmode #view .alt, body.penmode #view .key, body.penmode #view p:has(> span[data-mk]){cursor:crosshair;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
-@media (pointer: coarse){ body.hlmode #view [data-mk], body.hlmode #view .stem, body.hlmode #view .ctx{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none} }
+@media (pointer: coarse){ body.hlmode #view [data-mk], body.hlmode #view .stem, body.hlmode #view .ctx, body.hlmode #view .alt, body.hlmode #view .key, body.hlmode #view p:has(> span[data-mk]){touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none} }
 .rv-mk{display:block;position:relative}
 
 
@@ -2612,7 +2612,7 @@ function setTool(t, quiet){
   TOOL = t; HL_MODE = t === 'hl'; lsSet('uerj_hlmode', HL_MODE ? '1' : '0');
   resetGesture(); syncTools(); hideBar(); closeTn(true); if(typeof checkFloat === 'function') checkFloat();
   if(quiet) return;
-  if(t === 'hl') toast('Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
+  if(t === 'hl') toast(matchMedia('(pointer: coarse)').matches ? 'Marca-texto ligado: passe a caneta sobre o texto, ou deslize o dedo para o lado. Para cima e para baixo, o dedo rola a página. Toque na marcação para apagar.' : 'Marca-texto ligado: selecione o trecho para marcar; toque na marcação para apagar.');
   if(t === 'txt') toast('Texto: toque no ponto da explicação onde quer escrever.');
   if(t === 'pen') toast(STYLUS ? 'Caneta: escreva com a caneta; o dedo e a palma não riscam (o dedo rola a página). Toque perto de um traço para apagar.' : 'Caneta: desenhe para circular. Toque perto de um traço para apagar.');
   if(t === 'eraser') toast('Borracha: passe por cima dos traços que quer apagar.');
@@ -2956,24 +2956,63 @@ function endGesture(e, cancel){
 document.addEventListener('pointerup', e => endGesture(e, false));
 document.addEventListener('pointercancel', e => endGesture(e, true));
 /* iPad/celular: a stylus não rola a página enquanto escreve */
-document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser') && [...e.touches].some(t => t.touchType === 'stylus') && inkHost(e.target)){ markStylus(); e.preventDefault(); } }, {passive: false});
-document.addEventListener('touchmove', e => { if(G && (G.kind === 'pen' || G.kind === 'erase')) e.preventDefault(); }, {passive: false});
+document.addEventListener('touchstart', e => { if((TOOL === 'pen' || TOOL === 'eraser' || TOOL === 'hl') && [...e.touches].some(t => t.touchType === 'stylus') && inkHost(e.target)){ markStylus(); e.preventDefault(); } }, {passive: false});
+document.addEventListener('touchmove', e => {
+  if(!G) return;
+  if(G.kind === 'pen' || G.kind === 'erase'){ e.preventDefault(); return; }
+  if(G.kind === 'hl' && e.cancelable){
+    const t = e.touches[0]; if(!t) return;
+    const dx = Math.abs(t.clientX - G.x0), dy = Math.abs(t.clientY - G.y0);
+    /* caneta: sempre marca; dedo: deslizar para o lado marca, para cima/baixo rola */
+    if(G.pen || G.active || (dx > 3 && dx >= dy)){ G.lock = true; e.preventDefault(); }
+  }
+}, {passive: false});
 
 /* marca-texto no toque: com o marca-texto ligado, passar o dedo ou a caneta sobre o texto já marca */
+const RNG = document.createRange();
+function charRect(node, i){ RNG.setStart(node, i); RNG.setEnd(node, i + 1); const rs = RNG.getClientRects(); return rs[0] || RNG.getBoundingClientRect(); }
+/* procura a letra sob o ponto percorrendo o texto do bloco (não depende da seleção do navegador) */
+function hitOffset(host, x, y){
+  const tw = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+  let best = null, bd = Infinity, n;
+  while((n = tw.nextNode())){
+    if(n.parentElement && n.parentElement.closest('.tn')) continue;
+    RNG.selectNodeContents(n);
+    const box = RNG.getBoundingClientRect();
+    if(!box.height || y < box.top - 24 || y > box.bottom + 24) continue;
+    const len = n.textContent.length;
+    for(let i = 0; i < len; i++){
+      const r = charRect(n, i); if(!r || !r.height) continue;
+      const dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+      const dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+      const d = dy * 4 + dx;
+      if(d < bd){ bd = d; best = {n, i: x > (r.left + r.right) / 2 ? i + 1 : i}; if(!d) break; }
+    }
+    if(bd === 0) break;
+  }
+  return best ? offsetIn(host, best.n, best.i) : null;
+}
 function caretOffset(host, x, y){
   const ca = caretAt(x, y);
-  if(ca && ca.node && host.contains(ca.node.nodeType === 1 ? ca.node : ca.node.parentElement)) return offsetIn(host, ca.node, ca.off);
+  if(ca && ca.node && ca.node.nodeType === 3 && host.contains(ca.node)){
+    const len = ca.node.textContent.length, i = Math.min(ca.off, len - 1);
+    const r = len ? charRect(ca.node, Math.max(0, i)) : null;
+    if(r && y >= r.top - 6 && y <= r.bottom + 6 && x >= r.left - 40 && x <= r.right + 40) return offsetIn(host, ca.node, ca.off);
+  }
+  const h = hitOffset(host, x, y); if(h != null) return h;
   const r = host.getBoundingClientRect();
   if(y < r.top || (y <= r.bottom && x < r.left)) return 0;
   return host.textContent.length;
 }
 function startHl(e, host){
   const a = caretOffset(host, e.clientX, e.clientY);
-  G = {kind: 'hl', pid: e.pointerId, t: e.timeStamp, host, sc: markScope(host), k: host.dataset.mk, a, b: a, x0: e.clientX, y0: e.clientY, active: false};
+  G = {kind: 'hl', pid: e.pointerId, t: e.timeStamp, host, sc: markScope(host), k: host.dataset.mk, a, b: a, x0: e.clientX, y0: e.clientY, active: false, pen: e.pointerType === 'pen' || STYLUS && e.pointerType !== 'touch'};
+  if(G.pen){ e.preventDefault(); capture(e); }
 }
 function moveHl(e){
   const g = G;
-  if(!g.active){ if(Math.abs(e.clientX - g.x0) < 8 && Math.abs(e.clientY - g.y0) < 8) return; g.active = true; }
+  g.t = e.timeStamp;
+  if(!g.active){ if(Math.abs(e.clientX - g.x0) < (g.pen ? 4 : 8) && Math.abs(e.clientY - g.y0) < (g.pen ? 4 : 8)) return; g.active = true; }
   g.b = caretOffset(g.host, e.clientX, e.clientY);
   const lo = Math.min(g.a, g.b), hi = Math.max(g.a, g.b);
   const base = ((S.marks[g.sc] || {})[g.k] || []).slice();
@@ -2984,7 +3023,7 @@ function moveHl(e){
 function endHl(g, cancel){
   if(!g.active){ return; }   /* foi só um toque: o clique normal cuida (ex.: tocar na marcação apaga) */
   SUPPRESS_CLICK = true;
-  if(cancel){ paintMarks(); return; }
+  if(cancel && !g.lock && !g.pen){ paintMarks(); return; }
   const txt = g.host.textContent, W = /[\wÀ-ÿ%]/;
   let lo = Math.min(g.a, g.b), hi = Math.max(g.a, g.b);
   while(lo > 0 && W.test(txt[lo - 1]) && W.test(txt[lo])) lo--;          /* completa a palavra do começo */
