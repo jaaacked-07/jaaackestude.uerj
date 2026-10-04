@@ -214,12 +214,16 @@ mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0 1px;cursor:
 details.cr-day > summary::before{content:none!important;display:none!important}
 
 /* v21: questões do cronograma, dias recolhidos, temas múltiplos, estatísticas */
-.cr-q{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 12px;background:var(--bg)}
+.cr-q{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px;background:var(--bg)}
 .cr-qh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:14px}
-.cr-bar{position:relative;height:6px;border-radius:9px;background:var(--sunk);margin:10px 0 12px;overflow:hidden}
+.cr-bar{position:relative;height:4px;border-radius:9px;background:var(--sunk);margin:9px 0 12px;overflow:hidden}
 .cr-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:9px}
-.cr-bar .d{background:color-mix(in srgb, var(--accent) 30%, transparent)}
-.cr-bar .o{background:var(--ok)}
+.cr-bar i{background:var(--ok)}
+.cr-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
+.cr-seg button{all:unset;cursor:pointer;font-size:12.5px;padding:5px 11px;border-radius:999px;color:var(--ink-2)}
+.cr-seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.cr-seg button:disabled{opacity:.4;cursor:default}
+.cr-seg .num{opacity:.7;margin-left:2px}
 .cr-qgo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cr-n{width:64px;text-align:center;padding:6px 8px!important}
 .cr-qgo .btn{margin-left:auto;padding:7px 14px}
@@ -1044,6 +1048,16 @@ function hideSnapshot(id){
   for(const k of Object.keys(tn)) if(QKEYS.test(k)) for(const z of tn[k]) h.tn.add(z.id);
   return h;
 }
+/* apaga só o que foi marcado no ENUNCIADO e nas alternativas (explicação, ponto-chave e Matérias ficam intactos) */
+function clearStemMarks(id){
+  let ch = false;
+  for(const store of [S.marks, S.ink || {}, S.tnotes || {}]){
+    const m = store[id]; if(!m) continue;
+    for(const k of Object.keys(m)) if(QKEYS.test(k)){ delete m[k]; ch = true; }
+    if(!Object.keys(m).length) delete store[id];
+  }
+  if(ch) save();
+}
 const hidM = (sc, k, r) => HIDEQ && HIDEQ.sc === sc && HIDEQ.marks.has(k + ':' + r.join(','));
 const hidI = (sc, st) => HIDEQ && HIDEQ.sc === sc && HIDEQ.ink.has(st);
 const hidT = (sc, z) => HIDEQ && HIDEQ.sc === sc && HIDEQ.tn.has(z.id);
@@ -1059,7 +1073,7 @@ document.addEventListener('click', e => {
 function questionHTML(q, o){
   const answered = o.reveal;
   if(answered){ if(HIDEQ && HIDEQ.sc === q.id) HIDEQ = null; }
-  else if(S.ans[q.id] && S.ans[q.id].length){ if(!HIDEQ || HIDEQ.sc !== q.id){ HIDEQ = hideSnapshot(q.id); delete CUT[q.id]; } }
+  else if(S.ans[q.id] && S.ans[q.id].length){ if(!HIDEQ || HIDEQ.sc !== q.id){ HIDEQ = {sc: q.id, marks: new Set(), ink: new Set(), tn: new Set()}; clearStemMarks(q.id); delete CUT[q.id]; } }
   else if(HIDEQ && HIDEQ.sc !== q.id) HIDEQ = null;
   const ch = o.chosen;
   const alts = q.o.map((txt,i) => {
@@ -2247,12 +2261,18 @@ function crTips(b){
 const QORD = new Map(Q.map((q, i) => [q.id, i]));
 function crQs(b){ const s = new Set(); (b.rv || []).forEach(id => (TOPICQ[id] || []).forEach(q => { if(QI[q] && valid(QI[q])) s.add(q); })); return [...s].sort((x, y) => QORD.get(x) - QORD.get(y)); }
 function crProg(qs){ const done = qs.filter(id => S.ans[id] && S.ans[id].length); const ok = done.filter(id => S.ans[id][S.ans[id].length - 1].ok).length; return {total: qs.length, done: done.length, ok, acc: pct(ok, done.length)}; }
+const CR_QMODE = {};
 function crQPanel(b, qs){
-  const g = crProg(qs), left = g.total - g.done, def = Math.min(10, left || g.total);
+  const g = crProg(qs), left = g.total - g.done;
+  const m = CR_QMODE[b.id] === 'new' && left ? 'new' : 'all', max = m === 'new' ? left : g.total;
   return `<div class="cr-q">
-    <div class="cr-qh"><span>Questões deste tema no banco UERJ <span class="faint">(2022–2026)</span>: <b class="num">${g.total}</b></span><span class="faint small num">${g.done ? `${g.done} feitas · ${g.ok} acertos (${g.acc}%)` : 'nenhuma feita ainda'}</span></div>
-    <div class="cr-bar" title="${g.done} de ${g.total} feitas · ${g.ok} acertos"><i class="d" style="width:${pct(g.done, g.total)}%"></i><i class="o" style="width:${pct(g.ok, g.total)}%"></i></div>
-    <div class="cr-qgo"><span class="small muted">Fazer</span><input type="number" class="cr-n" id="crn-${b.id}" min="1" max="${g.total}" value="${def}"><span class="small muted">${left ? `de ${left} que faltam` : 'questões (já fez todas: revisa as erradas primeiro)'}</span><button class="btn primary" data-cq="${b.id}">Começar</button></div>
+    <div class="cr-qh"><span><b class="num">${g.total}</b> <span class="muted">questões no banco UERJ</span></span><span class="faint small num">${g.done ? `${g.done} feitas · ${g.acc}% de acerto` : 'nenhuma feita'}</span></div>
+    <div class="cr-bar" title="${g.done} de ${g.total} feitas"><i style="width:${pct(g.done, g.total)}%"></i></div>
+    <div class="cr-qgo">
+      <div class="cr-seg" role="group" aria-label="Quais questões"><button type="button" data-cqm="${b.id}|all" aria-pressed="${m === 'all'}">Todas</button><button type="button" data-cqm="${b.id}|new" aria-pressed="${m === 'new'}" ${left ? '' : 'disabled'}>Não feitas <span class="num">${left}</span></button></div>
+      <input type="number" class="cr-n" id="crn-${b.id}" min="1" max="${max}" value="${Math.min(10, max)}" aria-label="Quantas questões">
+      <button class="btn primary" data-cq="${b.id}">Começar</button>
+    </div>
   </div>`;
 }
 let CR_OPEN = null, CR_EDIT = null; const CR_DAYS = new Set(); let CR_DAYS_SET = false;
@@ -2335,11 +2355,14 @@ function crBind(){
   }));
   document.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { const [, x] = crFind(b.dataset.ck); x.done = !x.done; save(); re(); });
   document.querySelectorAll('[data-ctips]').forEach(b => b.onclick = () => { const t = $('#tips-' + b.dataset.ctips); t.hidden = !t.hidden; });
+  document.querySelectorAll('[data-cqm]').forEach(b => b.onclick = () => { const [id, m] = b.dataset.cqm.split('|'); CR_QMODE[id] = m; const y = scrollY; pCrono(); window.scrollTo(0, y); });
   document.querySelectorAll('[data-cq]').forEach(b => b.onclick = () => {
     const [, x] = crFind(b.dataset.cq); const qs = crQs(x);
-    const n = Math.max(1, Math.min(qs.length, +($('#crn-' + x.id) || {}).value || 10));
-    const fresh = qs.filter(id => !S.ans[id]), wrong = qs.filter(id => S.ans[id] && status(id) === 'bad'), rest = qs.filter(id => S.ans[id] && status(id) !== 'bad');
-    const list = [...fresh, ...wrong, ...rest].slice(0, n);
+    const pool = (CR_QMODE[x.id] === 'new' ? qs.filter(id => !S.ans[id]) : qs.slice());
+    if(!pool.length) return;
+    const n = Math.max(1, Math.min(pool.length, +($('#crn-' + x.id) || {}).value || 10));
+    for(let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }  /* ordem aleatória */
+    const list = pool.slice(0, n);
     CR_SESSION = {title: x.ti, ids: list, answered: []};
     openQ(list[0], list, 'Cronograma', () => go('crono'), {k: 'livre'});
   });
@@ -3111,8 +3134,7 @@ function setNav(open){
 $('#menuBtn').onclick = () => setNav(!document.body.classList.contains('nav-open'));
 $('#sideX').onclick = () => setNav(false);
 $('#sideBd').onclick = () => setNav(false);
-document.addEventListener('click', e => { if(e.target.closest && e.target.closest('#side [data-go]') && innerWidth < 700) setNav(false); });
-if(innerWidth <= 900 && innerWidth >= 700 && lsGet('uerj_navopen') === '1') setNav(true);
+document.addEventListener('click', e => { if(document.body.classList.contains('nav-open') && e.target.closest && e.target.closest('#side button, #side a, #side [data-go]')) setNav(false); }, true);
 
 /* ---------- PWA (instalar como app) ---------- */
 const PWA = {prompt: null};
