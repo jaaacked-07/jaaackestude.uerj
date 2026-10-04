@@ -626,7 +626,11 @@ body.penmode #view [data-mk], body.penmode #view .stem, body.penmode #view .ctx,
 .rv-y i{font-style:normal;opacity:.75;margin-left:3px;font-weight:500}
 .rv-yrs .xs{margin-left:6px}
 .rv-pand{margin:4px 0 18px;border:1px solid var(--line);border-radius:12px;padding:0 16px;background:var(--surface)}
-.rv-pand > summary{padding:12px 0;font-size:14px;font-weight:600}
+.rv-pand{border-color:color-mix(in srgb, var(--accent) 40%, var(--line));background:linear-gradient(180deg, var(--accent-soft), var(--surface) 80%)}
+.rv-pand > summary{padding:14px 0;font-size:14px}
+.rv-pand > summary::before{color:var(--accent);font-weight:700}
+.rv-pandk{font-weight:700;color:var(--accent);font-size:15px}
+.rv-pands{display:block;font-size:12.5px;color:var(--ink-2);font-weight:500;margin-top:2px}
 .rv-pand[open] > summary{border-bottom:1px solid var(--line);margin-bottom:6px}
 .rv-pand .rv-card{background:var(--bg)}
 .rv-map{display:flex;flex-direction:column;align-items:center}
@@ -1129,7 +1133,7 @@ function rvTopic(t, tid, pan){
   const mk = (h, k) => h && tid ? `<div class="rv-mk" data-mk="${k}" data-ms="t:${esc(tid)}">${h}</div>` : h;
   const P = rvPan(t, tid, mk);
   const head = !P ? '' : pan === 'open' ? P + '<div class="rv-sec rv-sec2">O que já caiu, em detalhe</div>'
-    : `<details class="rv-pand"><summary>Panorama do tema <span class="faint">· visão geral, mapa, padrão UERJ e aposta</span></summary>${P}</details>`;
+    : `<details class="rv-pand"${lsGet('uerj_pan_open') === '1' ? ' open' : ''}><summary><span class="rv-pandk">Panorama do tema</span><span class="rv-pands">Visão geral · Mapa visual · Padrão UERJ · Aposta UERJ</span></summary>${P}</details>`;
   return `${head}<div class="rv-body">${t.b.map((b, i) => b.k === 'img' ? rvBlock(b) : mk(rvBlock(b), 'b' + i)).join('')}
     ${t.tips.length ? mk(`<div class="rv-tips">${t.tips.map(([k, x]) => `<div class="rv-tip rv-${k}"><span class="rv-tk">${TIPLAB[k]}</span><span>${rvInline(x)}</span></div>`).join('')}</div>`, 'tips') : ''}
     ${t.src ? `<p class="rv-src">Fontes: ${esc(t.src)}</p>` : ''}</div>`;
@@ -1256,6 +1260,8 @@ function qCard(q, st, o){
 function lastAns(id){ const a = S.ans[id]; return a && a.length ? a[a.length - 1] : null; }
 function dayCard(q, r, j){ return qCard(q, r ? (r.ok ? 'ok' : 'bad') : 'no', {top: j + 1, r, noLab: 'Sem resposta'}); }
 function qRow(q, st){ return qCard(q, st, {r: st !== 'no' ? lastAns(q.id) : null}); }
+/* o Panorama na explicação da questão lembra se você deixou aberto */
+document.addEventListener('toggle', e => { if(e.target.classList && e.target.classList.contains('rv-pand')) lsSet('uerj_pan_open', e.target.open ? '1' : '0'); }, true);
 /* expandir/fechar (um aberto por vez) */
 document.addEventListener('click', e => {
   const c = e.target.closest && e.target.closest('#view [data-dq]'); if(!c || e.target.closest('[data-q],[data-topicgo]')) return;
