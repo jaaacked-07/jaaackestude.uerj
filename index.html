@@ -609,6 +609,11 @@ body.penmode.stylus #view [data-mk], body.penmode.stylus #view .stem, body.penmo
 .rv-mnemonico{background:var(--warn-soft)} .rv-mnemonico .rv-tk{color:var(--warn)}
 .rv-src{font-size:12px;color:var(--ink-3);margin:14px 0 0;line-height:1.5}
 .rv-more{margin-top:18px}
+.fb-me{margin-top:28px;padding:4px 18px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.fb-me h4{margin-top:14px}
+.rv-ana{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line-2)}
+.rv-anak{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink-3);margin-bottom:8px}
+.rv .rv-pand{margin-top:16px}
 /* panorama do tema */
 :root{--mc0:#6C8EBF;--mc1:#D9825B;--mc2:#4FA38A;--mc3:#A07CC5;--mc4:#D2A13A;--mc5:#CF6A8B}
 .rv-pan{margin:0 0 10px}
@@ -1041,7 +1046,7 @@ const CUT = {};
 /* questão já feita que aparece de novo: esconde (sem apagar) o que você marcou no ENUNCIADO e nas alternativas,
    para responder sem pista. Ao responder, tudo volta a aparecer. Explicações e Matérias não são afetadas. */
 const QKEYS = /^(x|s|s2|o\d)$/;
-let HIDEQ = null;
+let HIDEQ = null; const QCLEARED = new Set();
 function hideSnapshot(id){
   const mk = S.marks[id] || {}, ink = (S.ink || {})[id] || {}, tn = (S.tnotes || {})[id] || {};
   const h = {sc: id, marks: new Set(), ink: new Set(), tn: new Set()};
@@ -1074,9 +1079,10 @@ document.addEventListener('click', e => {
 }, true);
 function questionHTML(q, o){
   const answered = o.reveal;
-  if(answered){ if(HIDEQ && HIDEQ.sc === q.id) HIDEQ = null; }
-  else if(S.ans[q.id] && S.ans[q.id].length){ if(!HIDEQ || HIDEQ.sc !== q.id){ HIDEQ = {sc: q.id, marks: new Set(), ink: new Set(), tn: new Set()}; clearStemMarks(q.id); delete CUT[q.id]; } }
-  else if(HIDEQ && HIDEQ.sc !== q.id) HIDEQ = null;
+  /* questão avulsa já feita: limpa o enunciado UMA vez por tentativa (voltar a ela sem responder não apaga o que você marcou agora).
+     No simulado nada é limpo durante a prova: só quando ele termina (finishSim). */
+  if(answered) QCLEARED.delete(q.id);
+  else if(!o.sim && S.ans[q.id] && S.ans[q.id].length && !QCLEARED.has(q.id)){ QCLEARED.add(q.id); clearStemMarks(q.id); delete CUT[q.id]; }
   const ch = o.chosen;
   const alts = q.o.map((txt,i) => {
     const Lt = L[i];
@@ -1117,15 +1123,19 @@ function feedbackHTML(q, ch){
   const ok = ch === q.g;
   const note = S.notes[q.id] || {};
   const verdict = q.g === 'X' ? `<div class="verdict x">Questão anulada pela banca</div>` : `<div class="verdict ${ok?'ok':'bad'}">${ok ? 'Você acertou.' : 'Você errou.'}</div>`;
+  /* o que a Análise de Provas diz deste tema entra no "Padrão UERJ" (não fica repetido em outro lugar) */
+  const ana = (t.peg.length || dk.length) ? `<div class="rv-ana"><div class="rv-anak">Da Análise de Provas · ${esc(t.tema)}</div><ul class="rv-ul">${dk.map(x => `<li>${esc(x[1])}</li>`).join('')}${t.peg.map(p => `<li><b>Pegadinha:</b> ${esc(p)}</li>`).join('')}</ul></div>` : '';
+  const rv = reviewHTML(q, ana);
   return `<div class="fb">
     ${verdict}
     <p class="muted" style="margin-top:6px">Gabarito oficial pós-recurso: <strong>${q.g==='X'?'anulada':q.g}</strong> · Sua resposta: <strong>${ch}</strong></p>
     <div class="fb-h"><h4>Por que a resposta é ${q.g==='X' ? 'discutível (questão anulada)' : q.g}</h4>${hlBtn()}</div>${whyHTML(q)}
     <h4>Ponto-chave</h4><p class="key"><span data-mk="k" data-ms="${q.id}">${esc(q.k)}</span></p>
-    ${reviewHTML(q)}
-    ${!ok && q.g!=='X' ? `<h4>Por que errei?</h4><div class="why">${WHY.map(w => `<button class="chip" data-why="${esc(w)}" aria-pressed="${note.why===w}">${w}</button>`).join('')}</div>` : ''}
-    <h4>Minha anotação</h4>${noteEditorHTML(q)}
-    ${(t.peg.length || dk.length) ? `<details><summary>Na análise das provas: ${esc(t.tema)} (${t.qtd} ${t.qtd>1?'questões':'questão'}, ${t.anos.join(', ')})</summary><ul>${dk.map(x => `<li>${esc(x[1])}</li>`).join('')}${t.peg.map(p => `<li>Pegadinha: ${esc(p)}</li>`).join('')}</ul></details>` : ''}
+    <section class="fb-me">
+      ${!ok && q.g!=='X' ? `<h4>Por que errei?</h4><div class="why">${WHY.map(w => `<button class="chip" data-why="${esc(w)}" aria-pressed="${note.why===w}">${w}</button>`).join('')}</div>` : ''}
+      <h4>Minha anotação</h4>${noteEditorHTML(q)}
+    </section>
+    ${rv || (ana ? `<details class="rv-more"><summary>Na análise das provas: ${esc(t.tema)}</summary>${ana}</details>` : '')}
   </div>`;
 }
 /* ---------- revisão do tema (texto, tabela, fluxograma, escada, barras, fotos) ---------- */
@@ -1147,7 +1157,7 @@ function rvBlock(b){
   return '';
 }
 const TIPLAB = {dica: 'Dica', pegadinha: 'Pegadinha', mnemonico: 'Mnemônico'};
-function rvPan(t, tid, mk){
+function rvPan(t, tid, mk, ana){
   const x = t.x; if(!x) return '';
   const blocks = (arr, pre) => (arr || []).map((b, i) => b.k === 'img' ? rvBlock(b) : mk(rvBlock(b), pre + i)).join('');
   const qs = (TOPICQ[tid] || []).filter(id => QI[id]);
@@ -1158,26 +1168,39 @@ function rvPan(t, tid, mk){
     <div class="rv-sec"><span class="rv-sn">2</span>Mapa visual</div>${blocks(x.vis, 'xv')}
     <div class="rv-card rv-padc"><div class="rv-sec"><span class="rv-sn">3</span>O padrão UERJ</div>
       <div class="rv-yrs">${yrs}<span class="xs faint">${qs.length} ${qs.length === 1 ? 'questão' : 'questões'} no banco</span></div>
-      ${mk(`<ul class="rv-ul">${(x.pad || []).map(l => `<li>${rvInline(l)}</li>`).join('')}</ul>`, 'xp')}</div>
+      ${mk(`<ul class="rv-ul">${(x.pad || []).map(l => `<li>${rvInline(l)}</li>`).join('')}</ul>`, 'xp')}${ana || ''}</div>
     <div class="rv-card rv-apoc"><div class="rv-sec"><span class="rv-sn">4</span>Nota de tendência · Aposta UERJ</div>
       ${mk(`<ul class="rv-ul">${(x.apo || []).map(l => /^Aposta UERJ:/.test(l) ? `<li class="rv-bet"><span class="rv-betk">Aposta UERJ</span>${rvInline((l = l.replace(/^Aposta UERJ:\s*/, '')).charAt(0).toUpperCase() + l.slice(1))}</li>` : `<li>${rvInline(l)}</li>`).join('')}</ul>`, 'xa')}</div>
   </div>`;
 }
-function rvTopic(t, tid, pan){
+function rvTopic(t, tid, pan, ana){
   const mk = (h, k) => h && tid ? `<div class="rv-mk" data-mk="${k}" data-ms="t:${esc(tid)}">${h}</div>` : h;
-  const P = rvPan(t, tid, mk);
-  const head = !P ? '' : pan === 'open' ? P + '<div class="rv-sec rv-sec2">O que já caiu, em detalhe</div>'
-    : `<details class="rv-pand"${lsGet('uerj_pan_open') === '1' ? ' open' : ''}><summary><span class="rv-pandk">Panorama do tema</span><span class="rv-pands">Visão geral · Mapa visual · Padrão UERJ · Aposta UERJ</span></summary>${P}</details>`;
-  return `${head}<div class="rv-body">${t.b.map((b, i) => b.k === 'img' ? rvBlock(b) : mk(rvBlock(b), 'b' + i)).join('')}
+  const P = rvPan(t, tid, mk, ana);
+  /* a mesma foto não aparece duas vezes: se já está no Panorama, sai do detalhe */
+  const shown = new Set([...((t.x || {}).ov || []), ...((t.x || {}).vis || [])].filter(b => b.k === 'img').map(b => b.src));
+  const blk = (b, i) => b.k === 'img' ? (P && shown.has(b.src) ? '' : rvBlock(b)) : mk(rvBlock(b), 'b' + i);
+  const items = t.b.map((b, i) => [b, i]);
+  if(P && pan !== 'open'){
+    /* na questão: ficha clínica (consulta rápida) → Panorama (recolhido) → detalhes do que caiu */
+    const fic = items.filter(([b]) => b.k === 'ficha'), rest = items.filter(([b]) => b.k !== 'ficha');
+    return `${fic.map(([b, i]) => blk(b, i)).join('')}
+      <details class="rv-pand"${lsGet('uerj_pan_open') === '1' ? ' open' : ''}><summary><span class="rv-pandk">Panorama do tema</span><span class="rv-pands">Visão geral · Mapa visual · Padrão UERJ · Aposta UERJ</span></summary>${P}</details>
+      ${rest.length ? '<div class="rv-sec rv-sec2" style="margin-top:28px;padding-top:0;border-top:0">O que já caiu, em detalhe</div>' : ''}
+      <div class="rv-body">${rest.map(([b, i]) => blk(b, i)).join('')}
+    ${t.tips.length ? mk(`<div class="rv-tips">${t.tips.map(([k, x]) => `<div class="rv-tip rv-${k}"><span class="rv-tk">${TIPLAB[k]}</span><span>${rvInline(x)}</span></div>`).join('')}</div>`, 'tips') : ''}
+    ${t.src ? `<p class="rv-src">Fontes: ${esc(t.src)}</p>` : ''}</div>`;
+  }
+  const head = !P ? '' : P + '<div class="rv-sec rv-sec2">O que já caiu, em detalhe</div>';
+  return `${head}<div class="rv-body">${items.map(([b, i]) => blk(b, i)).join('')}
     ${t.tips.length ? mk(`<div class="rv-tips">${t.tips.map(([k, x]) => `<div class="rv-tip rv-${k}"><span class="rv-tk">${TIPLAB[k]}</span><span>${rvInline(x)}</span></div>`).join('')}</div>`, 'tips') : ''}
     ${t.src ? `<p class="rv-src">Fontes: ${esc(t.src)}</p>` : ''}</div>`;
 }
-function reviewHTML(q){
+function reviewHTML(q, ana){
   const ids = (RV.Q[q.id] || []).filter(id => RV.T[id]);
   if(!ids.length) return '';
   const [first, ...rest] = ids;
-  return `<section class="rv"><div class="rv-kicker">Revisão do tema</div><h3 class="rv-title">${esc(RV.T[first].t)}</h3>${rvTopic(RV.T[first], first)}
-    ${rest.map(id => `<details class="rv-more"><summary>Revisão relacionada: ${esc(RV.T[id].t)}</summary>${rvTopic(RV.T[id], id)}</details>`).join('')}</section>`;
+  return `<section class="rv"><div class="rv-kicker">Estude o tema</div><h3 class="rv-title">${esc(RV.T[first].t)}</h3>${rvTopic(RV.T[first], first, '', ana)}
+    ${rest.length ? `<div class="rv-sec rv-sec2">Temas relacionados</div>${rest.map(id => `<details class="rv-more"><summary>${esc(RV.T[id].t)}</summary>${rvTopic(RV.T[id], id)}</details>`).join('')}` : ''}</section>`;
 }
 function bindFeedback(q){
   document.querySelectorAll('[data-why]').forEach(b => b.onclick = () => { const n = S.notes[q.id] = S.notes[q.id] || {}; n.why = n.why === b.dataset.why ? '' : b.dataset.why; save(); document.querySelectorAll('[data-why]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.why === n.why))); });
@@ -1580,7 +1603,7 @@ function pSimRun(){
   $('#view').innerHTML = `<div class="page">
     <div class="progress"><button class="btn ghost" id="simPause">Pausar</button><div class="bar"><i style="width:${pct(answered, SIM.ids.length)}%"></i></div><div class="num small muted">${SIM.i+1}/${SIM.ids.length}</div>${hlBtn()}<span class="timer" id="tmr"></span></div>
     <div class="xs faint sim-name"><button class="linkbtn" id="simRen" title="Renomear">${esc(SIM.name)} ${PEN_I}</button></div>
-    ${questionHTML(q, {chosen: SIM.ch[q.id], reveal:false})}
+    ${questionHTML(q, {chosen: SIM.ch[q.id], reveal:false, sim: true})}
     <div class="actions"><div class="xs faint">${answered} de ${SIM.ids.length} marcadas · use as setas para navegar</div>
       <div class="row"><button class="btn ghost" id="sPrev" ${SIM.i?'':'disabled'}>Anterior</button>
       ${SIM.i < SIM.ids.length-1 ? `<button class="btn" id="sNext">Próxima →</button>` : ''}
@@ -1623,7 +1646,9 @@ function finishSim(){
   for(const id of SIM.ids){ if(!SIM.ch[id] && !SIM.done[id]){ (S.ans[id] = S.ans[id] || []).push({t:Date.now(), d:today(), ch:'—', ok:false, conf:'', sec:SIM.sec[id]||0, mode:'simulado', sim: SIM.id}); S.srs[id] = {step:0, due: addDays(today(),1)}; } }
   const ok = SIM.okDone;
   const rec = {id: SIM.id, name: SIM.name, date: SIM.date || today(), ids: SIM.ids, ch: SIM.ch, acc: pct(ok, SIM.ids.length), ok, sec: Math.round((Date.now()-SIM.start)/1000), label: SIM.label};
-  S.sims.push(rec); save(); SIM = null;
+  S.sims.push(rec);
+  for(const id of rec.ids) clearStemMarks(id);   /* simulado acabou: limpa só os enunciados (explicações e anotações ficam) */
+  save(); SIM = null;
   go('simres', {k: S.sims.length-1});
 }
 function pSimRes(){
@@ -2896,6 +2921,8 @@ function delStrokes(hits){
 const ER_RING = document.createElement('div'); ER_RING.className = 'er-ring'; ER_RING.hidden = true; document.body.appendChild(ER_RING);
 function showRing(x, y, tol){ ER_RING.hidden = false; ER_RING.style.width = ER_RING.style.height = tol * 2 + 'px'; ER_RING.style.left = x - tol + 'px'; ER_RING.style.top = y - tol + 'px'; }
 const isWide = e => (e.width || 0) > 38 || (e.height || 0) > 38;   /* palma */
+let PEN_BLOCK_T = 0;
+const CLICKABLE = '.click,[data-topic],[data-day],[data-sim],[data-go],[data-bid],.cr-b,[role="button"],.li,.dq,[onclick]';
 const INTERACTIVE = '.tbx,.tb-float,button,input,select,textarea,label,[contenteditable],.note-wrap,a,summary,.chip,[data-q],[data-dq],.cutb,#hlbar,.tn-in';
 function inkHost(t){
   if(!t || !t.closest || !t.closest('#view') || t.closest(INTERACTIVE)) return null;
@@ -3014,7 +3041,9 @@ document.addEventListener('touchstart', e => {
   if(TOOL !== 'pen' && TOOL !== 'eraser' && TOOL !== 'hl') return;
   const isPen = [...e.changedTouches].some(t => t.touchType === 'stylus') || LAST_PT === 'pen';
   if(!isPen || !e.target.closest || !e.target.closest('#view') || e.target.closest(INTERACTIVE)) return;
-  markStylus(); if(e.cancelable) e.preventDefault();
+  /* fora do texto, itens clicáveis (temas, blocos do cronograma, cartões, linhas) continuam respondendo ao toque da caneta */
+  if(!inkHost(e.target) && e.target.closest(CLICKABLE)) return;
+  markStylus(); if(e.cancelable){ e.preventDefault(); PEN_BLOCK_T = Date.now(); }
 }, {passive: false});
 document.addEventListener('touchmove', e => {
   if(TOOL !== 'pen' && TOOL !== 'eraser') return;
@@ -3107,7 +3136,11 @@ function moveHl(e){
   g.host._hl = true;
 }
 function endHl(g, cancel){
-  if(!g.active){ return; }   /* foi só um toque: o clique normal cuida (ex.: tocar na marcação apaga) */
+  if(!g.active){
+    /* com a caneta o toque foi bloqueado para não rolar: repassa o clique (ex.: escolher alternativa com o marca-texto ligado) */
+    if(g.pen && !cancel && Date.now() - PEN_BLOCK_T < 3000){ const el = document.elementFromPoint(g.x0, g.y0); if(el) setTimeout(() => el.click(), 0); }
+    return;
+  }   /* foi só um toque: o clique normal cuida (ex.: tocar na marcação apaga) */
   SUPPRESS_CLICK = true;
   if(cancel && !g.lock && !g.pen){ paintMarks(); return; }
   const txt = g.host.textContent, W = /[\wÀ-ÿ%]/;
